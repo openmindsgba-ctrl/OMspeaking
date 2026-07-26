@@ -23,6 +23,7 @@ export const Footer: React.FC = () => (
           <h4 className="text-brand-gold font-black uppercase tracking-[0.2em] relative inline-block">
             LIÊN HỆ
             <div className="absolute -bottom-2 left-0 w-full h-1 bg-white/10" />
+          </h4>
           <ul className="space-y-4">
             <li className="flex items-start gap-3 group">
               <span className="text-brand-blue mt-1">📍</span>
@@ -56,6 +57,7 @@ export const Footer: React.FC = () => (
           <h4 className="text-brand-gold font-black uppercase tracking-[0.2em] relative inline-block">
             GIỚI THIỆU HỆ THỐNG NGOẠI NGỮ Open Minds
             <div className="absolute -bottom-2 left-0 w-full h-1 bg-white/10" />
+          </h4>
           <div className="bg-white/5 border border-white/10 p-6 rounded-[2rem] space-y-4">
             <p className="text-xs text-slate-300 leading-relaxed">
               Hệ thống Ngoại ngữ Open Minds được xây dựng với sứ mệnh đồng hành cùng học sinh trên hành trình chinh phục tiếng Anh, mở rộng tri thức và nuôi dưỡng những ước mơ hoài bão trong tương lai.
