@@ -10,14 +10,16 @@ interface ExerciseSectionProps {
   savedScore?: number | null;
 }
 
-const SpeakingQuestionItem = ({ 
+interface SpeakingQuestionItemProps {
+  question: SpeakingQuestion;
+  index: number;
+  onResult: (score: number, isCorrect: boolean) => void;
+}
+
+const SpeakingQuestionItem: React.FC<SpeakingQuestionItemProps> = ({ 
   question, 
   index,
   onResult
-}: { 
-  question: SpeakingQuestion; 
-  index: number;
-  onResult: (score: number, isCorrect: boolean) => void;
 }) => {
   const { isRecording, isEvaluating, result, error, startRecording, stopRecording } = useQuestionRecorder(
     question.questionText,

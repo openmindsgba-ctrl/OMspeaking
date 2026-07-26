@@ -563,7 +563,7 @@ export default function App() {
                            <PosterPreview
                             readingText={readingText2}
                             translationText={translationText2} 
-                            vocabulary={[]} // Hide word bank for second reading
+                            vocabulary={[]}
                             generatedTopicName="Reading 2 (Fill in the blanks)" 
                             topic={topic} level={level}
                             showTranslation={showTranslation}
