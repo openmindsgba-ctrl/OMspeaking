@@ -20,7 +20,7 @@ const SpeakingQuestionItem = ({
   onResult: (score: number, isCorrect: boolean) => void;
 }) => {
   const { isRecording, isEvaluating, result, error, startRecording, stopRecording } = useQuestionRecorder(
-    question.question,
+    question.questionText,
     question.expectedAnswer,
     "A1" // generic level for now since prompt mainly relies on question/answer matching
   );
@@ -33,7 +33,7 @@ const SpeakingQuestionItem = ({
 
   return (
     <div className="bg-white p-4 sm:p-6 rounded-2xl border-2 border-blue-100 shadow-sm mb-4">
-      <h4 className="font-bold text-base sm:text-lg text-blue-900 mb-2">Câu {index + 1}: {question.question}</h4>
+      <h4 className="font-bold text-base sm:text-lg text-blue-900 mb-2">Câu {index + 1}: {question.questionText}</h4>
       <p className="text-sm text-gray-500 mb-4 italic font-medium bg-gray-50 p-2 rounded-lg border border-gray-100">Gợi ý trả lời: {question.expectedAnswer}</p>
 
       <div className="flex items-center gap-4">
