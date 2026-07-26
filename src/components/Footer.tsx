@@ -12,6 +12,7 @@ export const Footer: React.FC = () => (
               <BrandLogo className="w-16 h-16" />
             </div>
           </div>
+          <div>
             <h3 className="text-2xl font-black text-brand-gold uppercase tracking-tight">Open Minds English</h3>
             <p className="text-slate-200 italic text-sm mt-1 font-semibold">"Learn English to go further."</p>
             <p className="text-slate-400 text-xs mt-2 leading-relaxed">Trung tâm ngoại ngữ Open Minds chỉ có dạy tiếng Anh.</p>
