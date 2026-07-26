@@ -207,7 +207,7 @@ export const generateContent = async (
   input: string,
   level: EnglishLevel,
   grammarTopic: string = "",
-  mode: "generate" | "useInput" = "generate",
+  mode: "generate" | "useInput" | "image" = "generate",
   imageData?: string,
   userName?: string,
   userAge?: string

@@ -69,6 +69,7 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
   const posterRef = useRef<HTMLDivElement>(null);
+  const posterRef2 = useRef<HTMLDivElement>(null);
 
   // Custom hooks
   const fileProcessor = useFileProcessor(setTopic, setImagePreview, setContentMode, setError, contentMode);
@@ -413,6 +414,7 @@ export default function App() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 text-[#1A1A1A]">
           <InputPanel
             topic={topic} setTopic={setTopic}
+            grammarTopic={grammarTopic} setGrammarTopic={setGrammarTopic}
             level={level} setLevel={setLevel}
             contentMode={contentMode} setContentMode={setContentMode}
             imagePreview={imagePreview} setImagePreview={setImagePreview}
@@ -572,7 +574,7 @@ export default function App() {
                             isDownloading={false}
                             onDownloadPoster={() => {}} 
                             onToggleTranslation={() => setShowTranslation(!showTranslation)}
-                            posterRef={null as any} 
+                            posterRef={posterRef2} 
                           />
                         </div>
                       )}
