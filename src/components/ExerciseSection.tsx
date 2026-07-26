@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ExerciseData, SpeakingQuestion } from '../types';
-import { Mic, Square, CheckCircle, XCircle, RefreshCw, AlertCircle, Award } from 'lucide-react';
+import { Mic, Square, CheckCircle, X, RefreshCw, AlertCircle, Award } from 'lucide-react';
 import { useQuestionRecorder } from '../hooks/useQuestionRecorder';
 import { motion } from 'motion/react';
 
@@ -69,7 +69,7 @@ const SpeakingQuestionItem = ({
           <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
             <div className="space-y-3 flex-1">
               <div className="flex items-center gap-2 bg-white w-fit px-3 py-1.5 rounded-lg shadow-sm">
-                {result.isCorrect ? <CheckCircle className="text-green-600" size={18} /> : <XCircle className="text-red-500" size={18} />}
+                {result.isCorrect ? <CheckCircle className="text-green-600" size={18} /> : <X className="text-red-500" size={18} />}
                 <span className={`font-black text-sm ${result.isCorrect ? 'text-green-700' : 'text-red-600'}`}>
                   {result.isCorrect ? 'Tuyệt vời! Bạn đã trả lời đúng ý.' : 'Chưa chính xác lắm, hãy thử lại nhé.'}
                 </span>
@@ -99,11 +99,11 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
     setCorrectAnswers(prev => ({ ...prev, [index]: isCorrect }));
   };
 
-  const isAllAnswered = exerciseData.speakingQuestions?.length > 0 && 
-    Object.keys(scores).length === exerciseData.speakingQuestions.length;
+  const isAllAnswered = (exerciseData.speakingQuestions?.length || 0) > 0 && 
+    Object.keys(scores).length === (exerciseData.speakingQuestions?.length || 0);
 
   const totalScore = isAllAnswered 
-    ? Math.round(Object.values(scores).reduce((a, b) => a + b, 0) / exerciseData.speakingQuestions.length)
+    ? Math.round(Object.values(scores).reduce((a, b) => a + b, 0) / (exerciseData.speakingQuestions?.length || 1))
     : null;
 
   return (

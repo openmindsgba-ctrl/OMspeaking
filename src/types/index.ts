@@ -1,4 +1,4 @@
-import { EvaluationResult, EnglishLevel, VocabularyItem } from '../services/geminiService';
+import type { EvaluationResult, EnglishLevel, VocabularyItem } from '../services/geminiService';
 
 export type { EvaluationResult, EnglishLevel, VocabularyItem };
 

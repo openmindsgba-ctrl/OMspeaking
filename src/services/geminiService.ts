@@ -1,4 +1,5 @@
 import { GoogleGenAI, Modality, Type } from "@google/genai";
+import type { ExerciseData } from '../types';
 
 const parseSafeJson = (text: string) => {
   let cleaned = (text || "{}").trim();
@@ -728,7 +729,6 @@ Output JSON:
   }
 };
 
-import { ExerciseData } from '../types';
 
 export const generateExercise = async (
   readingText: string,
