@@ -350,8 +350,8 @@ export default function App() {
         <div className="mb-8 sm:mb-12 flex flex-col items-center justify-center text-center space-y-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
             <img 
-              src="https://i.postimg.cc/6QCF87hB/2a-Obo-QZYBhy-WAs-Ju-KZv-QQv-YQ5n-BUFv7l-LMKc9u-Ii.jpg" 
-              alt="Ms Trang" 
+              src="https://i.postimg.cc/qM2nTtsk/1785032356986-1995623824330198076-7348354301078681975-e8fa2133421f3b86afd7712ef928845e.jpg" 
+              alt="Avatar" 
               className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-brand-gold shadow-lg mb-4 object-cover" 
             />
             <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-brand-blue-dark tracking-tighter uppercase mb-2">Trung tâm ngoại ngữ Open Minds - Luyện nói cùng AI</h2>

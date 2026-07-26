@@ -8,14 +8,19 @@ export const Footer: React.FC = () => (
         {/* Brand */}
         <div className="space-y-6">
           <div className="flex items-center gap-4">
-            <div className="p-1 bg-white rounded-2xl border-4 border-brand-gold">
+            <div className="rounded-2xl border-4 border-brand-gold overflow-hidden">
               <BrandLogo className="w-16 h-16" />
             </div>
           </div>
-          <div>
-            <h3 className="text-2xl font-black text-brand-gold uppercase tracking-tight">Open Minds English</h3>
-            <p className="text-slate-200 italic text-sm mt-1 font-semibold">"Learn English to go further."</p>
-            <p className="text-slate-400 text-xs mt-2 leading-relaxed">Trung tâm ngoại ngữ Open Minds chỉ có dạy tiếng Anh.</p>
+          <div className="flex flex-col">
+            <h3 className="text-2xl font-black text-brand-gold uppercase tracking-tight text-center">Open Minds English Centre</h3>
+            <div className="flex justify-between w-full px-1">
+              <span className="text-slate-200 italic text-sm font-bold tracking-[0.15em] uppercase">Learn</span>
+              <span className="text-slate-200 italic text-sm font-bold tracking-[0.15em] uppercase">English</span>
+              <span className="text-slate-200 italic text-sm font-bold tracking-[0.15em] uppercase">to</span>
+              <span className="text-slate-200 italic text-sm font-bold tracking-[0.15em] uppercase">go</span>
+              <span className="text-slate-200 italic text-sm font-bold tracking-[0.15em] uppercase">further.</span>
+            </div>
           </div>
         </div>
 
@@ -62,10 +67,6 @@ export const Footer: React.FC = () => (
           <div className="bg-white/5 border border-white/10 p-6 rounded-[2rem] space-y-4">
             <p className="text-xs text-slate-300 leading-relaxed">
               Hệ thống Ngoại ngữ Open Minds được xây dựng với sứ mệnh đồng hành cùng học sinh trên hành trình chinh phục tiếng Anh, mở rộng tri thức và nuôi dưỡng những ước mơ hoài bão trong tương lai.
-            </p>
-            <div className="h-0.5 bg-white/10 w-full" />
-            <p className="text-xs italic text-slate-200 leading-relaxed font-semibold">
-              Trung tâm ngoại ngữ Open Minds chỉ có dạy tiếng Anh.
             </p>
           </div>
         </div>
