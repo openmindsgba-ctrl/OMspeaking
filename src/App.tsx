@@ -352,7 +352,7 @@ export default function App() {
             <img 
               src="https://i.postimg.cc/qM2nTtsk/1785032356986-1995623824330198076-7348354301078681975-e8fa2133421f3b86afd7712ef928845e.jpg" 
               alt="Avatar" 
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-brand-gold shadow-lg mb-4 object-cover" 
+              className="w-40 sm:w-48 h-auto rounded-2xl border-4 border-brand-gold shadow-lg mb-4 object-cover" 
             />
             <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-brand-blue-dark tracking-tighter uppercase mb-2">Trung tâm ngoại ngữ Open Minds - Luyện nói cùng AI</h2>
           </motion.div>

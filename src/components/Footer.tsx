@@ -6,21 +6,15 @@ export const Footer: React.FC = () => (
     <div className="max-w-6xl mx-auto px-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
         {/* Brand */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <div className="rounded-2xl border-4 border-brand-gold overflow-hidden">
-              <BrandLogo className="w-16 h-16" />
-            </div>
+        <div className="flex flex-row items-center gap-4 sm:gap-6">
+          <div className="p-1.5 bg-white rounded-2xl sm:rounded-3xl border-4 border-brand-gold inline-flex shadow-lg shrink-0">
+            <BrandLogo className="w-16 h-16 sm:w-20 sm:h-20" />
           </div>
-          <div className="flex flex-col">
-            <h3 className="text-2xl font-black text-brand-gold uppercase tracking-tight text-center">Open Minds English Centre</h3>
-            <div className="flex justify-between w-full px-1">
-              <span className="text-slate-200 italic text-sm font-bold tracking-[0.15em] uppercase">Learn</span>
-              <span className="text-slate-200 italic text-sm font-bold tracking-[0.15em] uppercase">English</span>
-              <span className="text-slate-200 italic text-sm font-bold tracking-[0.15em] uppercase">to</span>
-              <span className="text-slate-200 italic text-sm font-bold tracking-[0.15em] uppercase">go</span>
-              <span className="text-slate-200 italic text-sm font-bold tracking-[0.15em] uppercase">further.</span>
-            </div>
+          <div className="flex flex-col items-start justify-center">
+            <h3 className="text-[16px] sm:text-[22px] font-black text-brand-gold uppercase tracking-tight whitespace-nowrap">Open Minds English Centre</h3>
+            <p className="mt-1 text-slate-200 italic text-[11px] sm:text-[14px] font-black uppercase tracking-[0.15em]">
+              Learn English to go further.
+            </p>
           </div>
         </div>
 
