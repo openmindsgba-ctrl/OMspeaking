@@ -6,11 +6,11 @@ export const Footer: React.FC = () => (
     <div className="max-w-6xl mx-auto px-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
         {/* Brand */}
-        <div className="flex flex-row items-center gap-4 sm:gap-6">
-          <div className="p-1.5 bg-white rounded-2xl sm:rounded-3xl border-4 border-brand-gold inline-flex shadow-lg shrink-0">
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="p-1.5 bg-white rounded-2xl sm:rounded-3xl border-[3px] border-brand-gold inline-flex shadow-lg shrink-0">
             <BrandLogo className="w-16 h-16 sm:w-20 sm:h-20" />
           </div>
-          <div className="flex flex-col items-start justify-center">
+          <div className="flex flex-col items-center justify-center">
             <h3 className="text-[16px] sm:text-[22px] font-black text-brand-gold uppercase tracking-tight whitespace-nowrap">Open Minds English Centre</h3>
             <p className="mt-1 text-slate-200 italic text-[11px] sm:text-[14px] font-black uppercase tracking-[0.15em]">
               Learn English to go further.
