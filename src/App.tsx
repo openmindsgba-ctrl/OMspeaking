@@ -29,6 +29,7 @@ import { useLessonHistory, LessonRecord } from './hooks/useLessonHistory';
 export default function App() {
   // Core state
   const [topic, setTopic] = useState('');
+  const [grammarTopic, setGrammarTopic] = useState('');
   const [level, setLevel] = useState<EnglishLevel>("Starters");
   const [apiKey, setApiKey] = useState(localStorage.getItem("GEMINI_API_KEY") || "");
   
@@ -51,7 +52,9 @@ export default function App() {
   // Generated content
   const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
   const [readingText, setReadingText] = useState<string | null>(null);
+  const [readingText2, setReadingText2] = useState<string | null>(null);
   const [translationText, setTranslationText] = useState<string | null>(null);
+  const [translationText2, setTranslationText2] = useState<string | null>(null);
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
   const [showTranslation, setShowTranslation] = useState(false);
   const [generatedTopicName, setGeneratedTopicName] = useState<string | null>(null);
@@ -70,6 +73,7 @@ export default function App() {
   // Custom hooks
   const fileProcessor = useFileProcessor(setTopic, setImagePreview, setContentMode, setError, contentMode);
   const audioPlayer = useAudioPlayer(readingText, level, setError);
+  const audioPlayer2 = useAudioPlayer(readingText2, level, setError);
   const recorder = useRecorder(readingText, level, setError);
   const lessonHistory = useLessonHistory();
 
@@ -103,20 +107,24 @@ export default function App() {
     setIsGenerating(true);
     setError(null);
     setReadingText(null);
+    setReadingText2(null);
 
     try {
       // 1. Generate content
-      const { prompt, readingText: text, topicName, translation, vocabulary: vocab } = await generateContent(
+      const { prompt, readingText: text, readingText2: text2, topicName, translation, translation2, vocabulary: vocab } = await generateContent(
         topic || (contentMode === "useInput" ? "Extract text from image" : "A scene based on the provided image"), 
-        level, contentMode, imagePreview || undefined
+        level, grammarTopic, contentMode, imagePreview || undefined
       );
       setGeneratedPrompt(prompt);
       setReadingText(text);
+      setReadingText2(text2 || null);
       setTranslationText(translation);
+      setTranslationText2(translation2 || null);
       setVocabulary(vocab);
       setGeneratedTopicName(topicName);
       setShowTranslation(false);
       audioPlayer.setAudioUrl(null);
+      audioPlayer2.setAudioUrl(null);
       recorder.setEvaluation(null);
 
       // 2. Generate exercises (with a short delay to avoid quota limits on free-tier keys)
@@ -131,6 +139,8 @@ export default function App() {
 
       // 3. Then generate audio (or fallback to TTS)
       audioPlayer.setIsAudioLoading(true);
+      audioPlayer2.setIsAudioLoading(true);
+      
       const audioUrl = text ? await generateAudio(text, level).catch(err => {
         console.error("Background audio generation failed", err);
         const msg = err?.message || "";
@@ -138,8 +148,16 @@ export default function App() {
         return null;
       }) : null;
       
+      const audioUrl2Result = text2 ? await generateAudio(text2, level).catch(err => {
+        console.error("Background audio generation 2 failed", err);
+        return null;
+      }) : null;
+      
       if (audioUrl) audioPlayer.setAudioUrl(audioUrl);
+      if (audioUrl2Result) audioPlayer2.setAudioUrl(audioUrl2Result);
+      
       audioPlayer.setIsAudioLoading(false);
+      audioPlayer2.setIsAudioLoading(false);
 
       // 3. Save to lesson history
       const lessonId = lessonHistory.addLesson({
@@ -311,9 +329,9 @@ export default function App() {
 
 
   return (
-    <div className="min-h-screen bg-blue-50/30 text-[#1A1A1A] font-sans selection:bg-brand-blue/10 relative overflow-hidden">
+    <div className="min-h-screen bg-brand-blue-dark text-white font-sans selection:bg-brand-gold/20 relative overflow-hidden">
       {/* Decorative Background Icons */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-[0.08] z-0">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-10 z-0">
         <Star className="absolute top-10 left-10 text-blue-400" size={120} />
         <Sparkles className="absolute top-1/4 right-20 text-brand-blue" size={100} />
         <GraduationCap className="absolute bottom-20 left-1/4 text-brand-blue" size={150} />
@@ -349,12 +367,19 @@ export default function App() {
         {/* Hero / Mode Selector */}
         <div className="mb-8 sm:mb-12 flex flex-col items-center justify-center text-center space-y-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
-            <img 
-              src="https://i.postimg.cc/qM2nTtsk/1785032356986-1995623824330198076-7348354301078681975-e8fa2133421f3b86afd7712ef928845e.jpg" 
-              alt="Avatar" 
-              className="w-40 sm:w-48 h-auto rounded-2xl border-4 border-brand-gold shadow-lg mb-4 object-cover" 
-            />
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-brand-blue-dark tracking-tighter uppercase mb-2">Trung tâm ngoại ngữ Open Minds - Luyện nói cùng AI</h2>
+            <div className="bg-white rounded-[2rem] border-[6px] border-brand-gold shadow-xl p-4 sm:p-6 mb-6">
+              <img 
+                src="https://i.postimg.cc/ht3M16P5/logo-ten.jpg" 
+                alt="Open Minds English Centre Logo" 
+                className="w-40 sm:w-56 h-auto object-contain" 
+              />
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-brand-gold tracking-tight uppercase mb-2 drop-shadow-md">
+              OPEN MINDS ENGLISH CENTRE
+            </h2>
+            <p className="text-lg sm:text-xl md:text-2xl font-bold italic text-white uppercase tracking-widest drop-shadow-md mb-6">
+              Learn English to go further.
+            </p>
           </motion.div>
           
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 bg-slate-100/50 p-2 rounded-2xl border border-slate-200">
@@ -385,7 +410,7 @@ export default function App() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 text-[#1A1A1A]">
           <InputPanel
             topic={topic} setTopic={setTopic}
             level={level} setLevel={setLevel}
@@ -528,6 +553,28 @@ export default function App() {
                           savedScore={exerciseScore} 
                           onComplete={handleExerciseComplete} 
                         />
+                      )}
+
+                      {/* Reading 2 Poster (Fill in the blanks) */}
+                      {readingText2 && (
+                        <div className="w-full max-w-4xl mx-auto mt-8">
+                           <PosterPreview
+                            readingText={readingText2}
+                            translationText={translationText2} 
+                            vocabulary={[]} // Hide word bank for second reading
+                            generatedTopicName="Reading 2 (Fill in the blanks)" 
+                            topic={topic} level={level}
+                            showTranslation={showTranslation}
+                            audioUrl={audioPlayer2.audioUrl} audioRef={audioPlayer2.audioRef}
+                            isPlaying={audioPlayer2.isPlaying} isAudioLoading={audioPlayer2.isAudioLoading}
+                            isBrowserTTS={audioPlayer2.isBrowserTTS}
+                            setIsPlaying={audioPlayer2.setIsPlaying} handlePlayAudio={audioPlayer2.handlePlayAudio}
+                            isDownloading={false}
+                            onDownloadPoster={() => {}} 
+                            onToggleTranslation={() => setShowTranslation(!showTranslation)}
+                            posterRef={null as any} 
+                          />
+                        </div>
                       )}
 
                       {/* Certificate Modal */}

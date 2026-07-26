@@ -8,6 +8,8 @@ import { EnglishLevel, ContentMode } from '../types';
 interface InputPanelProps {
   topic: string;
   setTopic: (topic: string) => void;
+  grammarTopic: string;
+  setGrammarTopic: (topic: string) => void;
   level: EnglishLevel;
   setLevel: (level: EnglishLevel) => void;
   contentMode: ContentMode;
@@ -35,7 +37,7 @@ const LEVELS: EnglishLevel[] = ["Starters", "Movers", "Flyers", "A1", "A2", "B1"
 
 export const InputPanel: React.FC<InputPanelProps> = (props) => {
   const {
-    topic, setTopic, level, setLevel, contentMode,
+    topic, setTopic, grammarTopic, setGrammarTopic, level, setLevel, contentMode,
     imagePreview, setImagePreview,
     isGenerating, isProcessingFile, isDragging, error,
     onGenerate, onRetry, onOpenApiKeyModal,
@@ -54,7 +56,7 @@ export const InputPanel: React.FC<InputPanelProps> = (props) => {
         <div className="relative z-10 space-y-6">
           <div>
             <label className="flex items-center gap-2 text-sm font-black text-brand-blue mb-3 uppercase tracking-wider">
-              {contentMode === "generate" && <><Type size={18} className="text-brand-blue" /> Chủ đề hoặc Từ vựng</>}
+              {contentMode === "generate" && <><Type size={18} className="text-brand-blue" /> Chủ đề và Ngữ pháp</>}
               {contentMode === "image" && <><ImageIcon size={18} className="text-brand-blue" /> Tải ảnh lên</>}
               {contentMode === "useInput" && <><FileText size={18} className="text-brand-blue" /> Văn bản bài đọc</>}
             </label>
@@ -67,7 +69,9 @@ export const InputPanel: React.FC<InputPanelProps> = (props) => {
               />
             ) : (
               <TextInputArea
-                topic={topic} setTopic={setTopic} contentMode={contentMode}
+                topic={topic} setTopic={setTopic} 
+                grammarTopic={grammarTopic} setGrammarTopic={setGrammarTopic}
+                contentMode={contentMode}
                 isDragging={isDragging} isProcessingFile={isProcessingFile}
                 handleDragOver={handleDragOver} handleDragLeave={handleDragLeave}
                 handleDrop={handleDrop} handlePaste={handlePaste}
@@ -171,13 +175,19 @@ const ImageUploadArea: React.FC<any> = ({ imagePreview, isDragging, imageInputRe
   </div>
 );
 
-const TextInputArea: React.FC<any> = ({ topic, setTopic, contentMode, isDragging, isProcessingFile, handleDragOver, handleDragLeave, handleDrop, handlePaste }) => (
+const TextInputArea: React.FC<any> = ({ topic, setTopic, grammarTopic, setGrammarTopic, contentMode, isDragging, isProcessingFile, handleDragOver, handleDragLeave, handleDrop, handlePaste }) => (
   <div className={`relative transition-all duration-200 ${isDragging ? 'scale-[1.02]' : ''}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
     <textarea value={topic} onChange={(e) => setTopic(e.target.value)} onPaste={handlePaste}
       placeholder={contentMode === "generate" ? "Ví dụ: Công viên, Bãi biển, Các bạn nhỏ đang chơi đùa..." : "Dán văn bản tiếng Anh của bạn vào đây, hoặc kéo thả file PDF, DOCX, TXT, Ảnh vào đây..."}
       className={`w-full h-36 sm:h-40 p-4 bg-blue-50/30 border-2 rounded-2xl focus:ring-4 focus:ring-brand-blue/20 focus:border-brand-blue transition-all resize-none text-slate-900 placeholder:text-slate-400 font-semibold text-sm sm:text-base
         ${isDragging ? 'border-brand-blue bg-blue-50' : 'border-slate-100'}`}
     />
+    {contentMode === "generate" && (
+      <input type="text" value={grammarTopic} onChange={(e) => setGrammarTopic(e.target.value)}
+        placeholder="Chủ đề ngữ pháp (VD: Thì hiện tại đơn, quá khứ tiếp diễn...)"
+        className={`w-full mt-3 p-3 bg-blue-50/30 border-2 rounded-2xl focus:ring-4 focus:ring-brand-blue/20 focus:border-brand-blue transition-all text-slate-900 placeholder:text-slate-400 font-semibold text-sm sm:text-base border-slate-100`}
+      />
+    )}
     {isProcessingFile && (
       <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] rounded-2xl flex items-center justify-center gap-2 text-blue-800 font-bold animate-pulse">
         <RefreshCw className="animate-spin" size={16} /> Đang xử lý file...

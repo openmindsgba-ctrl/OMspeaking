@@ -117,6 +117,8 @@ export interface VocabularyItem {
   ipa: string;
   meaning: string;
   emoji?: string;
+  grammarSummary?: string;
+  example?: string;
 }
 
 export interface ContentGenerationResult {
@@ -125,6 +127,8 @@ export interface ContentGenerationResult {
   topicName: string;
   translation: string;
   vocabulary: VocabularyItem[];
+  readingText2?: string;
+  translation2?: string;
 }
 
 export type EnglishLevel = "Starters" | "Movers" | "Flyers" | "A1" | "A2" | "B1" | "B2";
@@ -202,6 +206,7 @@ async function generateWithFallback(
 export const generateContent = async (
   input: string,
   level: EnglishLevel,
+  grammarTopic: string = "",
   mode: "generate" | "useInput" = "generate",
   imageData?: string,
   userName?: string,
@@ -209,76 +214,49 @@ export const generateContent = async (
 ): Promise<ContentGenerationResult> => {
   const useInputInstructions = mode === 'useInput' 
     ? `
-  ⚠️ ABSOLUTE RULE FOR 'useInput' MODE — THIS OVERRIDES ALL OTHER RULES:
-  - You MUST copy the user's input text EXACTLY into "readingText", word for word, preserving 100% of the original content.
-  - DO NOT summarize, simplify, shorten, paraphrase, or rewrite ANY part of the text.
-  - DO NOT apply the Cambridge Level word count limits below. The word count limits ONLY apply when mode is 'generate'.
-  - The ONLY modifications allowed: remove ISBNs, publisher names, page numbers, copyright footers — pure noise that is not educational content.
-  - If the input is from an image, perform high-accuracy OCR to extract ALL English text verbatim.
-  - The "readingText" output MUST contain every sentence, every paragraph from the user's input. Missing even one sentence is UNACCEPTABLE.
-  - The "translation" must be a Vietnamese translation of the COMPLETE readingText, not a summary.
+  ⚠️ ABSOLUTE RULE FOR 'useInput' MODE:
+  - Copy the user's input text EXACTLY into "readingText" (Word for word).
+  - Use the exact same input for "readingText2" but replace all instances of the 30 vocabulary words with "....................".
+  - The "translation" and "translation2" must translate the FULL texts.
   ` 
     : '';
 
   const generateModeInstructions = mode !== 'useInput'
-    ? "The content MUST be professional, educational, and follow Cambridge curriculum styles. Use clear, descriptive, and engaging language with a tone that sounds like a native English-speaking child or a friendly teacher speaking to a child. The passage should be about the topic and the image. The text MUST be written as a cohesive reading passage or story in standard paragraph format. DO NOT use line breaks after every sentence or format it as a poem/chant unless explicitly requested."
+    ? "The content MUST be professional, educational, and follow Cambridge curriculum styles. Create a cohesive reading passage."
     : '';
 
-  const systemInstruction = `You are a highly skilled, expert English teacher and educational content creator for English learners. You strictly follow the CEFR (Common European Framework of Reference for Languages) and Cambridge English Qualifications standards (Starters, Movers, Flyers, KET, PET).
+  const systemInstruction = `You are an expert English teacher.
   ${useInputInstructions}
   Your task is to generate:
-  1. An image generation prompt for a highly realistic, crystal clear, and engaging educational illustration. The prompt MUST include quality keywords such as: "photorealistic, highly detailed, perfect anatomy, sharp focus, 8k UHD resolution, National Geographic photography style, professional lighting, vivid colors, no distortion, anatomically correct, full body in frame, DSLR quality". Avoid abstract, blurry, cartoon, or distorted styles.
-  2. A reading passage in English appropriate for the level: ${level}.
-     ${mode === 'useInput' 
-       ? "USE THE EXACT TEXT FROM THE USER'S INPUT — see the ABSOLUTE RULE above. Do NOT modify, shorten, or summarize it."
-       : generateModeInstructions
-     }
-  3. A short, catchy, and exciting title/topic name for this lesson (max 5 words). EVEN IN 'useInput' MODE, you must create a concise title based on the content if the input was long text.
-  4. A Vietnamese translation of the reading passage. ${mode === 'useInput' ? 'Translate the COMPLETE text, not a summary.' : ''}
-  5. A list of 3-5 key vocabulary words from the text with their IPA pronunciation and a very brief, concise Vietnamese meaning (strictly in Vietnamese, DO NOT include any English explanations, long definitions, or secondary translations).
+  1. An image generation prompt for a highly realistic, clear educational illustration matching the topic and grammar. Include quality keywords: "photorealistic, 8k UHD resolution, vivid colors".
+  2. "readingText": A reading passage appropriate for level ${level}. MUST contain ALL 30 vocabulary words you generate (bold them using Markdown **word**). Incorporate the grammar topic: "${grammarTopic}". ${mode === 'useInput' ? "USE EXACT USER TEXT." : generateModeInstructions}
+  3. "readingText2": A SECOND reading passage with DIFFERENT content but using the SAME 30 vocabulary words and grammar topic. In this text, replace every occurrence of the 30 vocabulary words with exactly "...................." (20 dots) so students can listen and fill in the blanks.
+  4. A short title/topic name (max 5 words).
+  5. "translation": Vietnamese translation of readingText.
+  6. "translation2": Vietnamese translation of readingText2.
+  7. "vocabulary": A list of EXACTLY 30 key vocabulary words. For each word include:
+     - "word": the English word
+     - "ipa": phonetic transcription
+     - "meaning": brief Vietnamese meaning
+     - "emoji": a relevant emoji
+     - "grammarSummary": a brief summary of how it fits the grammar topic (in Vietnamese)
+     - "example": a short example sentence in English using the word.
   
-  Cambridge & CEFR Level Specifics (ONLY for 'generate' mode, IGNORE these limits for 'useInput' mode):
-  - Starters (Pre-A1): 
-    * Word Count: STRICTLY 15 to 25 words. 
-    * Grammar: Only simple present tense of 'to be' (am/is/are), 'have got', 'can' (for ability), simple nouns, basic colors, animals, objects, and basic adjectives. Only simple sentences (Subject + Verb + Object). Absolutely NO compound sentences (no 'and', 'but' joining clauses), NO past/future tense, and NO complex vocabulary.
-  - Movers (A1): 
-    * Word Count: STRICTLY 25 to 45 words.
-    * Grammar: Simple present, present continuous, basic prepositions of place (in, on, under, next to, behind), basic modal verbs (can/must), simple descriptions.
-  - Flyers (A2): 
-    * Word Count: STRICTLY 45 to 65 words.
-    * Grammar: Past simple, future with 'going to', basic comparative adjectives, simple conjunctions (and, but, because).
-  - A1: 
-    * Word Count: STRICTLY 40 to 60 words.
-    * Grammar: Simple tenses (present, past, future). Simple everyday vocabulary.
-  - A2: 
-    * Word Count: STRICTLY 60 to 80 words.
-    * Grammar: Present perfect (simple experiences), past continuous, basic relative clauses (who/which/that), simple modal verbs (should/could).
-  - B1: 
-    * Word Count: STRICTLY 100 to 150 words.
-    * Grammar: Past perfect, passive voice, relative clauses, compound and complex sentences, expressing opinions and plans.
-  - B2: 
-    * Word Count: STRICTLY 150 to 200 words.
-    * Grammar: Conditional sentences (type 1, 2, 3), passive voice, advanced tenses, subjunctions, complex structures.
-  
-  User Information (if provided):
-  - Name: ${userName || 'Unknown'}
-  - Age: ${userAge || 'Unknown'}
-  
-  If the name and age are provided, you can optionally incorporate them into the reading passage if it makes sense.
-  
-  Output the result in JSON format with these keys: "prompt", "readingText", "topicName", "translation", "vocabulary".
-  - "prompt": string (English) — Must be a detailed, vivid scene description with photography quality keywords.
-  - "readingText": string (English) ${mode === 'useInput' ? '— MUST be the EXACT input text, unmodified and complete.' : ''}
-  - "topicName": string (English)
-  - "translation": string (Vietnamese) ${mode === 'useInput' ? '— MUST translate the complete text.' : ''}
-  - "vocabulary": array of objects { "word": string, "ipa": string, "meaning": string (very brief, concise Vietnamese meaning only, e.g. "quả táo", "đi bộ"), "emoji": string }
-  
-  The "prompt" should be in English, describing a visual scene that complements the text. Include photography quality terms.
-  The "readingText" should be the educational passage (either generated or extracted/provided).
-  The "topicName" MUST be a short (max 5 words) catchy title for the lesson. If the user's input was a long text, extract/create a title for it.
-  For the "emoji" field in vocabulary, provide a single relevant emoji that perfectly illustrates the word.`;
+  Output the result strictly in JSON format:
+  {
+    "prompt": "string",
+    "readingText": "string",
+    "readingText2": "string",
+    "topicName": "string",
+    "translation": "string",
+    "translation2": "string",
+    "vocabulary": [
+      { "word": "string", "ipa": "string", "meaning": "string", "emoji": "string", "grammarSummary": "string", "example": "string" }
+    ]
+  }
+  Note: Ensure exactly 30 vocabulary items.`;
 
-  const parts: any[] = [{ text: `Topic/Content: ${input}\nLevel: ${level}\nMode: ${mode}` }];
+  const parts: any[] = [{ text: `Topic/Content: ${input}\nGrammar Topic: ${grammarTopic}\nLevel: ${level}\nMode: ${mode}` }];
   if (imageData) {
     parts.push({
       inlineData: {
@@ -293,6 +271,7 @@ export const generateContent = async (
     config: { 
       systemInstruction,
       responseMimeType: "application/json",
+      maxOutputTokens: 8192,
     },
   });
 
@@ -303,19 +282,20 @@ export const generateContent = async (
   try {
     const result = parseSafeJson(response.text);
     
-    // 🛡️ BẢO VỆ TUYỆT ĐỐI NỘI DUNG VĂN BẢN (useInput)
-    // AI đôi khi vẫn tự cắt ngắn văn bản, nên nếu là văn bản (không phải ảnh), 
-    // ta lấy trực tiếp input của user làm readingText.
     let finalReadingText = result.readingText || "";
+    let finalReadingText2 = result.readingText2 || "";
     if (mode === "useInput" && !imageData && input) {
       finalReadingText = input;
+      // Note: readingText2 should ideally still have blanks, which the AI should have generated.
     }
 
     return {
       prompt: result.prompt || "",
       readingText: finalReadingText,
+      readingText2: finalReadingText2,
       topicName: result.topicName || (input.length < 50 ? input : "English Lesson"),
       translation: result.translation || "",
+      translation2: result.translation2 || "",
       vocabulary: result.vocabulary || []
     };
   } catch (e) {
@@ -754,56 +734,29 @@ export const generateExercise = async (
   readingText: string,
   level: EnglishLevel
 ): Promise<ExerciseData> => {
-  const systemInstruction = `You are a highly skilled English pedagogical expert and school teacher. Create exactly 30 exercise questions based ON THE PROVIDED READING TEXT.
-The student level is: ${level}. You must pay close attention to grammar, logical structures, correct syntax, and ensure all questions and correctAnswers are 100% grammatically correct.
+  const systemInstruction = `You are a highly skilled English pedagogical expert and school teacher. Create exactly 10 speaking questions based ON THE PROVIDED READING TEXT.
+The student level is: ${level}. Ensure all questions and expected answers are grammatically correct and appropriate for the level.
 
 The questions must be structured exactly as requested in the JSON format.
-There must be EXACTLY:
-- 10 multiple-choice questions (A, B, C)
-- 5 translation questions (English to Vietnamese, A, B, C multiple-choice options)
-- 5 ordering questions (Rearrange words to make a sentence)
-- 5 error-correction questions (Identify ONE wrong word from 3 options A, B, C within a sentence)
-- 5 fill-blank questions (Fill in the missing word)
+There must be EXACTLY 10 speaking questions.
 
 IMPORTANT RULES FOR A 20-YEAR EXPERIENCED TEACHER:
-1. **Multiple Choice (10 questions):** Focus on Reading Comprehension (main idea, details, inference, vocabulary in context). Distractors (incorrect options) must be plausible but clearly wrong.
-2. **Translation (5 questions):** Depending on the level (${level}), select either words (for lower levels like Starters, Movers, Flyers) or full sentences (for higher levels like A1, A2, B1, B2) from the text. This MUST be multiple choice with options A, B, C in Vietnamese. The correctAnswer must be 'A', 'B', or 'C'.
-3. **Ordering (5 questions):** Scramble sentences from or closely related to the reading text that test standard English syntax.
-   🚨 CRITICAL RULE FOR ORDERING WORDS:
-   - The "words" array MUST contain EXACTLY the words of the "correctAnswer" in a scrambled order.
-   - Do NOT include any extra words that are not in the "correctAnswer" (like extra articles, pronouns, or prepositions).
-   - Do NOT miss any words. Every word in the "correctAnswer" must appear exactly once in the "words" array.
-   - Punctuation (such as a period, question mark, or exclamation mark) must remain attached to the last word of both "words" and "correctAnswer" (e.g. if the correctAnswer is "Look at the bear.", then the word in the words array must be "bear.").
-4. **Error Correction (5 questions):** The errors should be common mistakes for this specific CEFR level (e.g., verb tense, subject-verb agreement, prepositions). The sentence must contain exactly ONE error. Provide options A, B, C containing 3 words from the sentence, where one of them is the error. The correctAnswer must be 'A', 'B', or 'C'. The "sentence" field MUST format these three words with underlines and labels, e.g.: "<u>He</u> (A) <u>go</u> (B) to <u>school</u> (C) yesterday." where option B is the error. Provide the correction in the "correctWord" field.
-5. **Fill in the blank (5 questions):** The missing word should be a target vocabulary word or a key functional word. Use "___" to denote the blank space. This MUST be multiple choice with options A, B, C. The correctAnswer must be 'A', 'B', or 'C'.
-6. Every question MUST be strictly based on the provided text to ensure context.
-7. Provide a brief, encouraging pedagogical explanation for each answer STRICTLY IN VIETNAMESE (e.g. "Vì 'yesterday' diễn tả quá khứ đơn nên ta chọn động từ 'went' thay cho 'go'.").
-8. All IDs must be unique strings (e.g., "mc1", "tr1").
-9. DO NOT include instructional prefixes like "Translate to Vietnamese:", "Rearrange the words:", "Find and correct the error:", or "Fill in the blank:" in the questionText. Just provide the sentence or word itself.
-10. For Fill in the blank questions, provide a "hintEmoji" (a single emoji that visually represents the missing word or context, e.g. 🍎 for apple, 🏃 for running) to help students guess the answer.
-11. 🚨 **EVEN DISTRIBUTION OF CORRECT ANSWERS:** You MUST distribute the correct answers ('A', 'B', 'C') as evenly as possible. For example, among the 10 multipleChoice questions, do NOT make 'A' the correct answer for all of them; instead, have about 3-4 questions with correct answer 'A', 3-4 with 'B', and 3-4 with 'C'. Balance this distribution for all multiple-choice style sections.
+1. Focus on Reading Comprehension (main idea, details, inference, vocabulary in context).
+2. The questions should be designed so the student can answer them by speaking.
+3. Provide the "expectedAnswer", which can be a short or full sentence. This will be used to evaluate the student's spoken response.
+4. Provide a brief, encouraging pedagogical "explanation" STRICTLY IN VIETNAMESE (e.g., "Câu trả lời nằm ở đoạn 2, khi nhân vật đang ở công viên.").
+5. All IDs must be unique strings (e.g., "sq1", "sq2").
 
 Output strictly a JSON object matching this schema:
 {
-  "multipleChoice": [
-    { "id": "mc1", "questionText": "...", "options": { "A": "...", "B": "...", "C": "..." }, "correctAnswer": "B", "explanation": "..." (brief, helpful explanation in Vietnamese) },
+  "speakingQuestions": [
+    { 
+      "id": "sq1", 
+      "questionText": "What did the boy do at the park?", 
+      "expectedAnswer": "He played football with his friends.", 
+      "explanation": "..." 
+    },
     ... 10 items
-  ],
-  "translation": [
-    { "id": "tr1", "questionText": "...", "options": { "A": "...", "B": "...", "C": "..." }, "correctAnswer": "C", "explanation": "..." },
-    ... 5 items
-  ],
-  "ordering": [
-    { "id": "or1", "questionText": "She is going to the market.", "words": ["going", "market.", "is", "She", "to", "the"], "correctAnswer": "She is going to the market.", "explanation": "..." },
-    ... 5 items
-  ],
-  "errorCorrection": [
-    { "id": "ec1", "questionText": "...", "sentence": "<u>He</u> (A) <u>go</u> (B) to <u>school</u> (C) yesterday.", "options": { "A": "He", "B": "go", "C": "school" }, "correctAnswer": "B", "correctWord": "went", "explanation": "..." },
-    ... 5 items
-  ],
-  "fillBlank": [
-    { "id": "fb1", "questionText": "He ___ to school.", "sentenceWithBlank": "He ___ to school.", "hintEmoji": "🏫", "options": { "A": "goes", "B": "going", "C": "gone" }, "correctAnswer": "A", "explanation": "..." },
-    ... 5 items
   ]
 }`;
 
@@ -813,7 +766,7 @@ Output strictly a JSON object matching this schema:
       systemInstruction,
       responseMimeType: "application/json",
       temperature: 0.2, // keep it deterministic
-      maxOutputTokens: 8192 // Ensure the 30-question JSON is not truncated early
+      maxOutputTokens: 8192
     },
   });
 
@@ -822,6 +775,71 @@ Output strictly a JSON object matching this schema:
     return result as ExerciseData;
   } catch (err: any) {
     console.error("Exercise Generation Error:", err);
-    throw new Error("Failed to generate exercise. Please try again.");
+    throw new Error("Failed to generate speaking exercises. Please try again.");
+  }
+};
+
+export const evaluateSpeakingAnswer = async (
+  questionText: string,
+  expectedAnswer: string,
+  audioData: string,
+  level: EnglishLevel,
+  mimeType: string = "audio/webm"
+): Promise<{
+  score: number;
+  feedback: string;
+  isCorrect: boolean;
+  transcribedText: string;
+}> => {
+  const systemInstruction = `Bạn là Ms Trang — giáo viên tiếng Anh, đóng vai giám khảo chấm điểm câu trả lời của học sinh.
+Bạn nghe audio thu âm từ micro trình duyệt.
+
+🎯 NHIỆM VỤ: Nghe audio → Ghi lại nguyên văn những gì nghe được (transcribedText) → So sánh với câu trả lời mẫu (expectedAnswer) → Đánh giá xem học sinh trả lời đúng hay sai ý của câu hỏi → Chấm điểm (thang 10) và đưa ra nhận xét.
+
+Câu hỏi: "${questionText}"
+Câu trả lời mong đợi (hoặc ý chính mong đợi): "${expectedAnswer}"
+
+Output JSON:
+{
+  "isCorrect": boolean (true nếu học sinh trả lời đúng ý chính của câu hỏi, false nếu sai hoặc không liên quan),
+  "score": number (0 đến 10, đánh giá dựa trên độ chính xác, phát âm, và ngữ pháp),
+  "transcribedText": string (nguyên văn những gì học sinh nói, viết bằng tiếng Anh),
+  "feedback": string (nhận xét bằng tiếng Việt, thân thiện, khen ngợi, chỉ ra lỗi sai nếu có)
+}`;
+
+  const cleanMimeType = mimeType.split(';')[0].trim() || "audio/webm";
+
+  const response = await generateWithFallback(TEXT_MODELS, {
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { text: \`Hãy nghe file audio bên dưới và đánh giá câu trả lời.\` },
+          {
+            inlineData: {
+              mimeType: cleanMimeType,
+              data: audioData,
+            },
+          },
+        ],
+      },
+    ],
+    config: { 
+      systemInstruction,
+      responseMimeType: "application/json",
+    },
+  });
+
+  try {
+    const result = parseSafeJson(response.text || "{}");
+    return {
+      isCorrect: result.isCorrect ?? false,
+      score: result.score || 0,
+      transcribedText: result.transcribedText || "",
+      feedback: result.feedback || "Không thể nhận diện âm thanh."
+    };
+  } catch (err: any) {
+    console.error("Speaking Answer Evaluation Error:", err);
+    throw new Error("Failed to evaluate answer. Please try again.");
   }
 };

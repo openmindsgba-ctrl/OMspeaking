@@ -128,7 +128,17 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
                     <span className="font-black text-xl leading-tight" style={{ color: '#0c4a6e' }}>{item.word}</span>
                     <span className="text-sm font-bold font-serif text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-xl border border-indigo-200 shadow-sm shrink-0">{item.ipa}</span>
                   </div>
-                  <span className="text-base font-medium italic text-slate-700 whitespace-normal leading-relaxed">{item.meaning}</span>
+                  <span className="text-base font-medium italic text-slate-700 whitespace-normal leading-relaxed mb-1">{item.meaning} {item.emoji}</span>
+                  {item.grammarSummary && (
+                    <div className="text-xs text-blue-700 mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
+                      <strong>Ngữ pháp:</strong> {item.grammarSummary}
+                    </div>
+                  )}
+                  {item.example && (
+                    <div className="text-xs text-gray-700 mt-1 p-2 bg-gray-50 rounded-lg border border-gray-200 italic">
+                      <strong>Ví dụ:</strong> "{item.example}"
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

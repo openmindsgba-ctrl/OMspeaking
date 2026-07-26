@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ExerciseData, ExerciseQuestion, MultipleChoiceQuestion, TranslationQuestion, OrderingQuestion, ErrorCorrectionQuestion, FillBlankQuestion } from '../types';
-import { CheckCircle, XCircle, Award } from 'lucide-react';
+import { ExerciseData, SpeakingQuestion } from '../types';
+import { Mic, Square, CheckCircle, XCircle, RefreshCw, AlertCircle, Award } from 'lucide-react';
+import { useQuestionRecorder } from '../hooks/useQuestionRecorder';
 import { motion } from 'motion/react';
 
 interface ExerciseSectionProps {
@@ -9,379 +10,144 @@ interface ExerciseSectionProps {
   savedScore?: number | null;
 }
 
-// Helper function to dynamically shuffle multiple-choice options (A, B, C)
-function shuffleSingleQuestionOptions<T extends { options: Record<string, string>; correctAnswer: string }>(q: T): T {
-  const optionEntries = Object.entries(q.options); // e.g. [['A', 'option1'], ['B', 'option2'], ['C', 'option3']]
-  const correctText = q.options[q.correctAnswer];
-  
-  // Scramble the options array randomly
-  const shuffledEntries = [...optionEntries].sort(() => Math.random() - 0.5);
-  
-  const keys = ['A', 'B', 'C'];
-  const newOptions: Record<string, string> = {};
-  let newCorrectAnswer = '';
-  
-  shuffledEntries.forEach((entry, idx) => {
-    const key = keys[idx];
-    newOptions[key] = entry[1];
-    if (entry[1] === correctText) {
-      newCorrectAnswer = key;
-    }
-  });
-  
-  return {
-    ...q,
-    options: newOptions,
-    correctAnswer: newCorrectAnswer
-  };
-}
+const SpeakingQuestionItem = ({ 
+  question, 
+  index,
+  onResult
+}: { 
+  question: SpeakingQuestion; 
+  index: number;
+  onResult: (score: number, isCorrect: boolean) => void;
+}) => {
+  const { isRecording, isEvaluating, result, error, startRecording, stopRecording } = useQuestionRecorder(
+    question.question,
+    question.expectedAnswer,
+    "A1" // generic level for now since prompt mainly relies on question/answer matching
+  );
 
-export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, onComplete, savedScore }) => {
-  const [currentExerciseData, setCurrentExerciseData] = useState<ExerciseData>(exerciseData);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState<boolean>(savedScore !== undefined && savedScore !== null);
-  const [score, setScore] = useState<number | null>(savedScore || null);
-  
-  // Track selected word indices for Ordering questions
-  const [orderingIndices, setOrderingIndices] = useState<Record<string, number[]>>({});
-
-  // Track shown results per question ID (for immediate feedback)
-  const [shownResults, setShownResults] = useState<Record<string, boolean>>({});
-
-  // Scramble option positions on mount / when exerciseData changes to ensure visual variety
   useEffect(() => {
-    if (!exerciseData) return;
-    
-    const shuffled: ExerciseData = {
-      ...exerciseData,
-      multipleChoice: (exerciseData.multipleChoice || []).map(q => shuffleSingleQuestionOptions(q)),
-      translation: (exerciseData.translation || []).map(q => shuffleSingleQuestionOptions(q)),
-      fillBlank: (exerciseData.fillBlank || []).map(q => shuffleSingleQuestionOptions(q)),
-      // errorCorrection options match specific underlined labels in the sentence, so we do not scramble them programmatically.
-    };
-    
-    setCurrentExerciseData(shuffled);
-    setAnswers({});
-    setShownResults({});
-    setOrderingIndices({});
-    setScore(savedScore || null);
-    setSubmitted(savedScore !== undefined && savedScore !== null);
-  }, [exerciseData, savedScore]);
-
-  const allQuestions: { type: string; title: string; questions: ExerciseQuestion[] }[] = [
-    { type: 'multiple-choice', title: 'I. Chọn đáp án đúng (A, B, C)', questions: (currentExerciseData.multipleChoice || []).map(q => ({ ...q, type: 'multiple-choice' })) },
-    { type: 'translation', title: 'II. Chọn bản dịch đúng nhất (A, B, C)', questions: (currentExerciseData.translation || []).map(q => ({ ...q, type: 'translation' })) },
-    { type: 'ordering', title: 'III. Bấm vào chữ để sắp xếp lại câu', questions: (currentExerciseData.ordering || []).map(q => ({ ...q, type: 'ordering' })) },
-    { type: 'error-correction', title: 'IV. Tìm từ có lỗi sai (A, B, C)', questions: (currentExerciseData.errorCorrection || []).map(q => ({ ...q, type: 'error-correction' })) },
-    { type: 'fill-blank', title: 'V. Điền từ vào chỗ trống', questions: (currentExerciseData.fillBlank || []).map(q => ({ ...q, type: 'fill-blank' })) },
-  ];
-
-  // Initialize ordering indices for completed/submitted exercises
-  useEffect(() => {
-    if (submitted && currentExerciseData?.ordering) {
-      const initialIndices: Record<string, number[]> = {};
-      currentExerciseData.ordering.forEach(q => {
-        const correctWords = q.correctAnswer.split(' ');
-        const indices: number[] = [];
-        const used = new Set<number>();
-        
-        correctWords.forEach(word => {
-          const idx = q.words.findIndex((w, i) => w === word && !used.has(i));
-          if (idx !== -1) {
-            indices.push(idx);
-            used.add(idx);
-          }
-        });
-        
-        initialIndices[q.id] = indices;
-      });
-      setOrderingIndices(initialIndices);
+    if (result) {
+      onResult(result.score, result.isCorrect);
     }
-  }, [submitted, currentExerciseData]);
-
-  const handleAnswerChange = (id: string, value: string) => {
-    // Only allow selecting ONCE. Once the answer is selected and result is shown, prevent modification.
-    if (submitted || shownResults[id]) return;
-    
-    setAnswers(prev => ({ ...prev, [id]: value }));
-    setShownResults(prev => ({ ...prev, [id]: true }));
-  };
-
-  // Add word to Ordering answer
-  const handleAddWordToAnswer = (qId: string, wordIdx: number) => {
-    if (submitted || shownResults[qId]) return;
-    const currentIndices = orderingIndices[qId] || [];
-    if (currentIndices.includes(wordIdx)) return;
-
-    const newIndices = [...currentIndices, wordIdx];
-    setOrderingIndices(prev => ({ ...prev, [qId]: newIndices }));
-
-    const question = currentExerciseData.ordering.find(q => q.id === qId);
-    if (question) {
-      const answerString = newIndices.map(idx => question.words[idx]).join(' ');
-      setAnswers(prev => ({ ...prev, [qId]: answerString }));
-      if (newIndices.length === question.words.length) {
-        setShownResults(prev => ({ ...prev, [qId]: true }));
-      } else {
-        setShownResults(prev => ({ ...prev, [qId]: false }));
-      }
-    }
-  };
-
-  // Remove word from Ordering answer
-  const handleRemoveWordFromAnswer = (qId: string, itemIndexInAnswer: number) => {
-    if (submitted || shownResults[qId]) return;
-    const currentIndices = orderingIndices[qId] || [];
-    const newIndices = currentIndices.filter((_, idx) => idx !== itemIndexInAnswer);
-    setOrderingIndices(prev => ({ ...prev, [qId]: newIndices }));
-
-    const question = currentExerciseData.ordering.find(q => q.id === qId);
-    if (question) {
-      const answerString = newIndices.map(idx => question.words[idx]).join(' ');
-      setAnswers(prev => ({ ...prev, [qId]: answerString }));
-      setShownResults(prev => ({ ...prev, [qId]: false }));
-    }
-  };
-
-  const handleSubmit = () => {
-    let correctCount = 0;
-    let totalCount = 0;
-
-    allQuestions.forEach(section => {
-      section.questions.forEach(q => {
-        totalCount++;
-        const userAnswer = answers[q.id]?.trim().toLowerCase();
-
-        let isCorrect = false;
-        if (q.type === 'multiple-choice' || q.type === 'translation' || q.type === 'error-correction') {
-          isCorrect = userAnswer === q.correctAnswer.toLowerCase();
-        } else {
-          const normalize = (s: string) => s.replace(/[.,!?]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
-          isCorrect = normalize(userAnswer || '') === normalize(q.correctAnswer);
-        }
-
-        if (isCorrect) correctCount++;
-      });
-    });
-
-    const finalScore = Number(((correctCount / Math.max(totalCount, 1)) * 10).toFixed(1));
-    setScore(finalScore);
-    setSubmitted(true);
-    onComplete(finalScore);
-  };
-
-  const getCorrectAnswer = (q: ExerciseQuestion): string => {
-    if (q.type === 'multiple-choice' || q.type === 'translation' || q.type === 'fill-blank') {
-      const mc = q as MultipleChoiceQuestion | TranslationQuestion | FillBlankQuestion;
-      return `${mc.correctAnswer}. ${mc.options[mc.correctAnswer]}`;
-    }
-    if (q.type === 'error-correction') {
-      const ec = q as ErrorCorrectionQuestion;
-      return `${ec.correctAnswer} (${ec.options[ec.correctAnswer]} → ${ec.correctWord})`;
-    }
-    return q.correctAnswer;
-  };
-
-  const checkCorrect = (q: ExerciseQuestion, answer: string): boolean => {
-    if (!answer) return false;
-    if (q.type === 'multiple-choice' || q.type === 'translation' || q.type === 'error-correction' || q.type === 'fill-blank') {
-      return answer.toLowerCase() === q.correctAnswer.toLowerCase();
-    }
-    const normalize = (s: string) => s.replace(/[.,!?]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
-    return normalize(answer) === normalize(q.correctAnswer);
-  };
-
-  const renderQuestion = (q: ExerciseQuestion, index: number) => {
-    const userAnswer = answers[q.id] || '';
-    const isCorrect = checkCorrect(q, userAnswer);
-    const isShown = submitted || shownResults[q.id];
-
-    const getLabelClass = (key: string) => {
-      let base = 'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 select-none';
-      const qMC = q as MultipleChoiceQuestion | TranslationQuestion | ErrorCorrectionQuestion;
-
-      if (userAnswer === key) {
-        base += ' border-brand-blue bg-blue-50/50 shadow-sm';
-      } else {
-        base += ' border-slate-100 hover:border-red-200 hover:bg-slate-50/50';
-      }
-      
-      if (isShown && key === qMC.correctAnswer) {
-        base = 'flex items-center gap-3 p-3 rounded-lg border-2 select-none border-green-500 bg-green-50/70 text-green-950 font-semibold cursor-not-allowed';
-      } else if (isShown && userAnswer === key && key !== qMC.correctAnswer) {
-        base = 'flex items-center gap-3 p-3 rounded-lg border-2 select-none border-blue-400 bg-red-50/70 text-red-950 cursor-not-allowed';
-      } else if (submitted || isShown) {
-        base += ' opacity-60 cursor-not-allowed';
-      }
-      
-      return base;
-    };
-
-    return (
-      <div key={q.id} className="p-4 sm:p-5 bg-white rounded-xl border border-slate-100 shadow-sm mb-4">
-        {/* Style injection for beautiful interactive error underlines */}
-        <style dangerouslySetInnerHTML={{ __html: `
-          .error-correction-sentence u {
-            text-decoration: none;
-            border-bottom: 2px dashed #1D4ED8;
-            font-weight: 800;
-            color: #991B1B;
-            padding: 0 4px;
-            display: inline-block;
-          }
-        `}} />
-
-        <div className="flex gap-3">
-          <span className="font-black text-blue-600 mt-0.5">{index + 1}.</span>
-          <div className="flex-1 space-y-3">
-            {q.type === 'error-correction' ? (
-              <div 
-                className="font-bold text-slate-800 text-sm sm:text-base leading-relaxed error-correction-sentence"
-                dangerouslySetInnerHTML={{ __html: (q as ErrorCorrectionQuestion).sentence.replace(/^(Find and correct the error|Correct the error)[\s:]*/i, '') }}
-              />
-            ) : q.type === 'fill-blank' ? (
-              <p className="font-bold text-slate-800 text-sm sm:text-base leading-relaxed flex items-start gap-2">
-                <span className="text-xl leading-none mt-0.5 shrink-0" title="Gợi ý">{(q as FillBlankQuestion).hintEmoji || '📝'}</span>
-                <span>{(q as FillBlankQuestion).sentenceWithBlank.replace(/^(Fill in the blank)[\s:]*/i, '')}</span>
-              </p>
-            ) : (
-              <p className="font-bold text-slate-800 text-sm sm:text-base leading-relaxed">
-                {q.questionText.replace(/^(Translate to Vietnamese|Rearrange the words|Fill in the blank|Translate into Vietnamese|Rearrange these words)[\s:]*/i, '')}
-              </p>
-            )}
-
-            {/* Ordering Question Interface */}
-            {q.type === 'ordering' && (
-              <div className="space-y-3">
-                {/* Result Answer Box */}
-                <div className="border-2 border-dashed border-slate-200 rounded-xl p-3 bg-slate-50/50 min-h-[56px] flex flex-wrap gap-2 items-center">
-                  {(orderingIndices[q.id] || []).length === 0 ? (
-                    <span className="text-slate-400 text-xs sm:text-sm italic">Bấm vào các từ bên dưới để sắp xếp...</span>
-                  ) : (
-                    (orderingIndices[q.id] || []).map((idx, itemIndex) => (
-                      <motion.button
-                        key={`${idx}-${itemIndex}`}
-                        layoutId={`word-${q.id}-${idx}`}
-                        disabled={submitted || shownResults[q.id]}
-                        onClick={() => handleRemoveWordFromAnswer(q.id, itemIndex)}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600 text-white rounded-lg text-xs sm:text-sm font-bold shadow-sm flex items-center gap-1 transition-all"
-                        whileTap={submitted || shownResults[q.id] ? {} : { scale: 0.95 }}
-                      >
-                        {(q as OrderingQuestion).words[idx]}
-                        {!(submitted || shownResults[q.id]) && <span className="text-[10px] opacity-75 font-black ml-1">✕</span>}
-                      </motion.button>
-                    ))
-                  )}
-                </div>
-
-                {/* Available Word Pool */}
-                {!(submitted || shownResults[q.id]) && (
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Từ gợi ý:</span>
-                    <div className="flex flex-wrap gap-2">
-                      {(q as OrderingQuestion).words.map((w, idx) => {
-                        const isSelected = (orderingIndices[q.id] || []).includes(idx);
-                        return (
-                          <div key={idx} className="min-w-[40px] min-h-[30px] flex items-center justify-center">
-                            {!isSelected && (
-                              <motion.button
-                                layoutId={`word-${q.id}-${idx}`}
-                                onClick={() => handleAddWordToAnswer(q.id, idx)}
-                                className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs sm:text-sm font-bold shadow-sm transition-all"
-                                whileTap={{ scale: 0.95 }}
-                              >
-                                {w}
-                              </motion.button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Multiple Choice Options (for multiple-choice, translation, error-correction, fill-blank) */}
-            {(q.type === 'multiple-choice' || q.type === 'translation' || q.type === 'error-correction' || q.type === 'fill-blank') ? (
-              <div className="space-y-2 mt-2">
-                {Object.entries((q as MultipleChoiceQuestion | TranslationQuestion | ErrorCorrectionQuestion | FillBlankQuestion).options).map(([key, val]) => (
-                  <label key={key} className={getLabelClass(key)}>
-                    <input 
-                      type="radio" 
-                      name={q.id} 
-                      value={key} 
-                      disabled={submitted || shownResults[q.id]}
-                      checked={userAnswer === key} 
-                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                      className="w-4 h-4 text-brand-blue border-slate-300 focus:ring-brand-blue shrink-0" 
-                    />
-                    <span className="font-black text-slate-400 shrink-0">{key}.</span>
-                    <span className="font-medium text-slate-700">{val}</span>
-                  </label>
-                ))}
-              </div>
-            ) : null}
-
-            {isShown && userAnswer && (
-              <div className={"mt-3 p-3 rounded-lg flex items-start gap-3 " + (isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200')}>
-                {isCorrect ? <CheckCircle className="text-green-600 shrink-0 mt-0.5" size={18} /> : <XCircle className="text-blue-500 shrink-0 mt-0.5" size={18} />}
-                <div>
-                  <p className={"text-sm font-bold " + (isCorrect ? 'text-green-800' : 'text-blue-800')}>
-                    {isCorrect ? 'Tuyệt vời!' : 'Chưa đúng rồi. Đáp án đúng: ' + getCorrectAnswer(q)}
-                  </p>
-                  <p className={"text-xs mt-1 leading-relaxed " + (isCorrect ? 'text-green-700/80' : 'text-blue-700/80')}>{q.explanation}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
+  }, [result]);
 
   return (
-    <div className="w-full max-w-[800px] mx-auto mt-8 space-y-6">
-      <div className="bg-gradient-to-br from-blue-700 to-blue-800 p-6 sm:p-8 rounded-[2rem] shadow-xl text-white text-center">
-        <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight mb-2">Bài tập củng cố kiến thức</h2>
-        <p className="text-red-50 font-medium">Hoàn thành 30 câu hỏi để nhận Chứng nhận xuất sắc nhé!</p>
+    <div className="bg-white p-4 sm:p-6 rounded-2xl border-2 border-blue-100 shadow-sm mb-4">
+      <h4 className="font-bold text-base sm:text-lg text-blue-900 mb-2">Câu {index + 1}: {question.question}</h4>
+      <p className="text-sm text-gray-500 mb-4 italic font-medium bg-gray-50 p-2 rounded-lg border border-gray-100">Gợi ý trả lời: {question.expectedAnswer}</p>
 
-        {submitted && score !== null && (
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mt-6 bg-white/20 p-4 rounded-2xl border border-white/30 backdrop-blur-sm inline-block">
-            <div className="flex items-center gap-3 justify-center mb-1">
-              <Award className="text-brand-yellow" size={28} />
-              <span className="text-sm font-black uppercase tracking-widest text-blue-100">Điểm số của bạn</span>
-            </div>
-            <div className="text-5xl font-black text-white">{score} <span className="text-2xl text-red-200">/ 10</span></div>
-          </motion.div>
-        )}
-      </div>
-
-      <div className="space-y-8 bg-white/50 p-4 sm:p-6 rounded-[2rem] border-2 border-blue-100 shadow-sm">
-        {allQuestions.map((section) => {
-          if (!section.questions || section.questions.length === 0) return null;
-          return (
-            <div key={section.type} className="space-y-4">
-              <h3 className="text-lg font-black text-blue-800 border-b-2 border-red-200 pb-2">{section.title}</h3>
-              <div className="space-y-4">
-                {section.questions.map((q, qIdx) => renderQuestion(q, qIdx))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {!submitted && (
-        <div className="sticky bottom-6 flex justify-center z-10">
-          <button
-            onClick={handleSubmit}
-            className="px-8 py-4 bg-brand-blue text-white rounded-full font-black text-lg shadow-2xl shadow-blue-500/50 hover:-translate-y-1 hover:shadow-blue-500/60 transition-all flex items-center gap-3"
+      <div className="flex items-center gap-4">
+        {!isRecording ? (
+          <button 
+            onClick={startRecording}
+            disabled={isEvaluating}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-white transition-all
+              ${isEvaluating ? 'bg-gray-300' : 'bg-red-500 hover:bg-red-600 shadow-md hover:shadow-lg active:scale-95'}`}
           >
-            <CheckCircle size={24} /> Nộp bài & Nhận chứng nhận
+            {isEvaluating ? <RefreshCw className="animate-spin" size={20} /> : <Mic size={20} />}
+            {isEvaluating ? 'Đang chấm điểm...' : 'Bấm để trả lời'}
           </button>
+        ) : (
+          <button 
+            onClick={stopRecording}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-800 hover:bg-gray-900 shadow-md active:scale-95 text-white rounded-xl font-bold transition-all animate-pulse border-2 border-red-500/50"
+          >
+            <Square size={20} className="fill-current text-red-500" /> Dừng thu âm
+          </button>
+        )}
+        {isRecording && <span className="text-sm font-bold text-red-500 animate-pulse">Đang nghe...</span>}
+      </div>
+
+      {error && (
+        <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-lg flex items-start gap-2 text-sm font-medium border border-red-100">
+          <AlertCircle size={16} className="mt-0.5 shrink-0" /> <span className="leading-relaxed">{error}</span>
         </div>
+      )}
+
+      {result && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-5 p-4 sm:p-5 rounded-xl border-2 bg-blue-50/50 border-blue-100">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+            <div className="space-y-3 flex-1">
+              <div className="flex items-center gap-2 bg-white w-fit px-3 py-1.5 rounded-lg shadow-sm">
+                {result.isCorrect ? <CheckCircle className="text-green-600" size={18} /> : <XCircle className="text-red-500" size={18} />}
+                <span className={`font-black text-sm ${result.isCorrect ? 'text-green-700' : 'text-red-600'}`}>
+                  {result.isCorrect ? 'Tuyệt vời! Bạn đã trả lời đúng ý.' : 'Chưa chính xác lắm, hãy thử lại nhé.'}
+                </span>
+              </div>
+              <p className="text-sm font-medium text-gray-700 leading-relaxed bg-white p-3 rounded-lg border border-gray-100 shadow-sm"><strong>🎙️ Bạn nói:</strong> "{result.transcribedText}"</p>
+              <p className="text-sm text-gray-700 leading-relaxed bg-blue-100/50 p-3 rounded-lg border border-blue-100"><strong>👩‍🏫 Nhận xét:</strong> {result.feedback}</p>
+            </div>
+            <div className="flex flex-col items-center justify-center w-full sm:w-auto p-4 bg-white rounded-xl shadow-sm border-2 border-indigo-50 sm:min-w-[100px]">
+              <span className="text-xs font-black text-indigo-300 uppercase tracking-widest mb-1">Điểm</span>
+              <span className={`text-3xl font-black ${result.score >= 8 ? 'text-green-500' : result.score >= 5 ? 'text-yellow-500' : 'text-red-500'}`}>
+                {result.score}<span className="text-lg text-gray-300">/10</span>
+              </span>
+            </div>
+          </div>
+        </motion.div>
       )}
     </div>
   );
 };
 
+export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, onComplete, savedScore }) => {
+  const [scores, setScores] = useState<Record<number, number>>({});
+  const [correctAnswers, setCorrectAnswers] = useState<Record<number, boolean>>({});
+
+  const handleResult = (index: number, score: number, isCorrect: boolean) => {
+    setScores(prev => ({ ...prev, [index]: score }));
+    setCorrectAnswers(prev => ({ ...prev, [index]: isCorrect }));
+  };
+
+  const isAllAnswered = exerciseData.speakingQuestions?.length > 0 && 
+    Object.keys(scores).length === exerciseData.speakingQuestions.length;
+
+  const totalScore = isAllAnswered 
+    ? Math.round(Object.values(scores).reduce((a, b) => a + b, 0) / exerciseData.speakingQuestions.length)
+    : null;
+
+  return (
+    <div className="w-full max-w-4xl mx-auto space-y-6 mt-8">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 sm:p-8 rounded-[2rem] shadow-xl text-white relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 opacity-20"><Mic size={150} /></div>
+        <h3 className="text-2xl sm:text-3xl font-black flex items-center gap-3 relative z-10">
+          Luyện Nói - Trả Lời Câu Hỏi
+        </h3>
+        <p className="text-blue-100 mt-3 font-medium text-sm sm:text-base max-w-lg relative z-10">
+          Hãy đọc câu hỏi, suy nghĩ câu trả lời và bấm nút Micro để ghi âm câu trả lời của bạn nhé! Ms Trang sẽ chấm điểm và nhận xét cho bạn.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {exerciseData.speakingQuestions?.map((q, idx) => (
+          <SpeakingQuestionItem 
+            key={q.id || idx} 
+            question={q} 
+            index={idx} 
+            onResult={(s, c) => handleResult(idx, s, c)} 
+          />
+        ))}
+        {(!exerciseData.speakingQuestions || exerciseData.speakingQuestions.length === 0) && (
+          <div className="p-8 text-center text-gray-500 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+            Không có câu hỏi nào trong bài học này.
+          </div>
+        )}
+      </div>
+
+      {isAllAnswered && totalScore !== null && (
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-8 p-6 sm:p-10 bg-green-50 border-4 border-green-200 rounded-[2rem] text-center shadow-lg relative overflow-hidden">
+          <div className="absolute top-10 right-10 p-4 opacity-10"><Award size={150} className="text-green-500" /></div>
+          <h4 className="text-xl sm:text-2xl font-black text-green-800 mb-2 uppercase tracking-wide relative z-10">Bạn Đã Hoàn Thành Trả Lời Câu Hỏi!</h4>
+          <p className="text-gray-600 font-medium mb-6 relative z-10">Điểm trung bình kỹ năng nói của bạn</p>
+          <div className="text-5xl sm:text-7xl font-black text-green-600 mb-8 drop-shadow-sm relative z-10">{totalScore} <span className="text-3xl sm:text-4xl text-green-400">/ 10</span></div>
+          <button 
+            onClick={() => onComplete(totalScore)}
+            className="relative z-10 px-8 py-3.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black rounded-xl shadow-xl hover:shadow-2xl transition-all active:scale-95 text-lg"
+          >
+            Lưu Điểm & Hoàn Thành
+          </button>
+        </motion.div>
+      )}
+    </div>
+  );
+};
