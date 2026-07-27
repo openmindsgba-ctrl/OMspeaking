@@ -45,19 +45,9 @@ const getApiKey = () => {
     }
   }
   
-  // Fallback to environment variable
-  const envKey = process.env.GEMINI_API_KEY;
-  if (
-    !envKey ||
-    envKey.toUpperCase() === "UNDEFINED" ||
-    envKey.toUpperCase() === "NULL" ||
-    envKey === "MY_GEMINI_API_KEY" ||
-    envKey.trim() === ""
-  ) {
-    console.warn("GEMINI_API_KEY is not set or using placeholder.");
-    return "";
-  }
-  return envKey.trim();
+  // We only use the client-managed API key for this app
+  console.warn("User has not provided an API Key. Please prompt them to enter one.");
+  return "";
 };
 
 // Helper to check for auth and permission errors

@@ -33,16 +33,7 @@ export default function App() {
   const [level, setLevel] = useState<EnglishLevel>("Starters");
   const [apiKey, setApiKey] = useState(localStorage.getItem("GEMINI_API_KEY") || "");
   
-  const hasEnvKey = React.useMemo(() => {
-    const envKey = process.env.GEMINI_API_KEY;
-    return !!(
-      envKey &&
-      envKey.toUpperCase() !== "UNDEFINED" &&
-      envKey.toUpperCase() !== "NULL" &&
-      envKey !== "MY_GEMINI_API_KEY" &&
-      envKey.trim() !== ""
-    );
-  }, []);
+  const hasEnvKey = false;
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [contentMode, setContentMode] = useState<ContentMode>("generate");
