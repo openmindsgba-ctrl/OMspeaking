@@ -1,4 +1,4 @@
-import { GoogleGenAI, Modality, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import type { ExerciseData } from '../types';
 
 const parseSafeJson = (text: string) => {
@@ -456,7 +456,7 @@ async function geminiTTS(text: string, level: EnglishLevel): Promise<string> {
           parts: [{ text: prompt }] 
         }],
         config: {
-          responseModalities: [Modality.AUDIO],
+          responseModalities: ["AUDIO"],
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: { voiceName: voice as any },
