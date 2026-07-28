@@ -21,9 +21,95 @@ interface PosterPreviewProps {
   onDownloadPoster: () => void;
   onToggleTranslation: () => void;
   posterRef: React.RefObject<HTMLDivElement | null>;
+  grammarSummary?: string | null;
 }
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5];
+
+const renderMarkdown = (text: string) => {
+  if (!text) return null;
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-black text-brand-blue-dark">{part.slice(2, -2)}</strong>;
+    }
+    return <span key={i} className="font-medium">{part}</span>;
+  });
+};
+
+const playWordAudio = (e: React.MouseEvent, word: string) => {
+  e.stopPropagation();
+  const utterance = new SpeechSynthesisUtterance(word);
+  utterance.lang = 'en-US';
+  window.speechSynthesis.speak(utterance);
+};
+
+interface MindMapNode {
+  label: string;
+  children: MindMapNode[];
+}
+
+const parseMarkdownToTree = (md: string): MindMapNode[] => {
+  const lines = md.split('\n').filter(line => line.trim().length > 0);
+  const rootNodes: MindMapNode[] = [];
+  const stack: { node: MindMapNode, indent: number }[] = [];
+
+  lines.forEach(line => {
+    const match = line.match(/^(\s*)-\s+(.*)/);
+    if (!match) return;
+    const indent = match[1].length;
+    let label = match[2];
+    label = label.replace(/\*\*/g, '');
+
+    const newNode = { label, children: [] };
+
+    while (stack.length > 0 && stack[stack.length - 1].indent >= indent) {
+      stack.pop();
+    }
+
+    if (stack.length === 0) {
+      rootNodes.push(newNode);
+    } else {
+      stack[stack.length - 1].node.children.push(newNode);
+    }
+    stack.push({ node: newNode, indent });
+  });
+
+  if (rootNodes.length === 0) {
+    return [{ label: "Ngữ pháp", children: [{ label: md, children: [] }] }];
+  }
+  return rootNodes;
+};
+
+const MindMapTree = ({ nodes, level = 0 }: { nodes: MindMapNode[], level?: number }) => {
+  const colors = [
+    'bg-indigo-600 text-white shadow-md border border-indigo-700', 
+    'bg-indigo-100 text-indigo-900 shadow-sm border border-indigo-200', 
+    'bg-blue-50 text-blue-800 border border-blue-100', 
+    'bg-white text-slate-700 border border-slate-200'
+  ];
+  
+  return (
+    <div className={`flex flex-col gap-3 ${level > 0 ? 'ml-6 pl-4 border-l-2 border-indigo-200 relative' : ''}`}>
+      {nodes.map((node, i) => {
+        const colorClass = colors[Math.min(level, colors.length - 1)];
+        return (
+          <div key={i} className="flex flex-col gap-3 relative">
+            {level > 0 && (
+              <div className="absolute -left-4 top-[14px] w-4 h-[2px] bg-indigo-200"></div>
+            )}
+            <div className={`w-fit px-4 py-2.5 rounded-xl font-bold text-sm sm:text-base ${colorClass} max-w-full sm:max-w-[90%] whitespace-normal`}>
+              {node.label}
+            </div>
+            {node.children && node.children.length > 0 && (
+              <MindMapTree nodes={node.children} level={level + 1} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 export const PosterPreview: React.FC<PosterPreviewProps> = ({
   readingText, translationText, vocabulary,
@@ -31,7 +117,7 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
   audioUrl, audioRef, isPlaying, isAudioLoading, isBrowserTTS,
   setIsPlaying, handlePlayAudio,
   isDownloading, onDownloadPoster, onToggleTranslation,
-  posterRef
+  posterRef, grammarSummary
 }) => {
   return (
     <div
@@ -75,37 +161,82 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
           </div>
         </div>
 
-        {/* Custom Audio Player */}
-        {audioUrl && (
-          <div data-html2canvas-ignore>
-            <CustomAudioPlayer audioUrl={audioUrl} audioRef={audioRef} isPlaying={isPlaying} setIsPlaying={setIsPlaying} />
-          </div>
-        )}
-
         <div className="space-y-3">
-          {(generatedTopicName || (topic && topic.length < 50)) && (
-            <div className="text-center">
-              <h3 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight" style={{ color: '#0369a1', lineHeight: '1.1' }}>
-                {generatedTopicName || topic}
-              </h3>
+
+          {/* Vocabulary */}
+          {vocabulary && vocabulary.length > 0 && (
+            <div className="mt-4">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg"><Target size={18} /></div>
+                <h3 className="text-base font-black uppercase tracking-widest" style={{ color: '#0369a1' }}>Word Bank</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {vocabulary.map((item, idx) => (
+                  <div key={idx} className="p-4 rounded-2xl flex flex-col transition-all hover:scale-[1.02] shadow-sm hover:shadow-indigo-100 bg-white border-2 border-indigo-100/50">
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-xl leading-tight" style={{ color: '#0c4a6e' }}>{item.word}</span>
+                        <button 
+                          onClick={(e) => playWordAudio(e, item.word)}
+                          className="text-brand-blue hover:text-brand-gold transition-colors"
+                          title="Nghe phát âm"
+                        >
+                          <Volume2 size={20} />
+                        </button>
+                      </div>
+                      <span className="text-sm font-bold font-serif text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-xl border border-indigo-200 shadow-sm shrink-0">{item.ipa}</span>
+                    </div>
+                    <span className="text-base font-medium italic text-slate-700 whitespace-normal leading-relaxed mb-1">{item.meaning} {item.emoji}</span>
+                    {item.example && (
+                      <div className="text-xs text-gray-700 mt-1 p-2 bg-gray-50 rounded-lg border border-gray-200 italic">
+                        <strong>Ví dụ:</strong> "{item.example}"
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-          <div className="bg-white/40 p-3 sm:p-4 md:p-8 rounded-[2rem] border-2 border-white shadow-lg backdrop-blur-sm mx-auto w-full max-w-[95%]">
+
+          {/* Grammar Summary */}
+          {grammarSummary && (
+            <div className="mt-6 p-5 bg-indigo-50 border-2 border-indigo-200 rounded-[1.5rem] shadow-sm overflow-x-auto">
+              <h4 className="text-sm font-black text-indigo-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                Mindmap Ngữ Pháp
+              </h4>
+              <MindMapTree nodes={parseMarkdownToTree(grammarSummary)} />
+            </div>
+          )}
+
+          <div className="bg-white/40 mt-8 p-3 sm:p-4 md:p-8 rounded-[2rem] border-2 border-white shadow-lg backdrop-blur-sm mx-auto w-full max-w-[95%]">
+            {(generatedTopicName || (topic && topic.length < 50)) && (
+              <div className="text-center mb-6">
+                <h3 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight" style={{ color: '#0369a1', lineHeight: '1.1' }}>
+                  {generatedTopicName || topic}
+                </h3>
+              </div>
+            )}
+            {/* Custom Audio Player */}
+            {audioUrl && (
+              <div data-html2canvas-ignore className="mb-6">
+                <CustomAudioPlayer audioUrl={audioUrl} audioRef={audioRef} isPlaying={isPlaying} setIsPlaying={setIsPlaying} />
+              </div>
+            )}
             <div className="text-[11px] font-black uppercase tracking-[0.4em] mb-4 text-center" style={{ color: '#0369a1', opacity: 0.5 }}>READING PASSAGE</div>
             <div
-              className="leading-[1.6] whitespace-pre-wrap font-bold text-left md:text-justify px-2"
+              className="leading-[1.6] whitespace-pre-wrap text-left md:text-justify px-2"
               style={{
                 color: '#1e293b',
                 fontSize: readingText && readingText.length > 500 ? '18px' : readingText && readingText.length > 300 ? '22px' : readingText && readingText.length > 150 ? '26px' : '30px',
                 fontFamily: '"Outfit", sans-serif'
               }}
             >
-              {readingText}
+              {readingText ? renderMarkdown(readingText) : null}
             </div>
           </div>
 
           {showTranslation && translationText && (
-            <div className="space-y-2 pt-3" style={{ borderTop: '2px solid #fef3c7' }}>
+            <div className="space-y-2 pt-3 mt-4" style={{ borderTop: '2px solid #fef3c7' }}>
               <div className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#d97706' }}>Tiếng Việt</div>
               <div className="text-sm sm:text-lg leading-relaxed whitespace-pre-wrap font-bold italic" style={{ color: '#334155' }}>
                 {translationText}
@@ -113,37 +244,6 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
             </div>
           )}
         </div>
-
-        {/* Vocabulary */}
-        {vocabulary && vocabulary.length > 0 && (
-          <div className="mt-6 pt-5" style={{ borderTop: '3px dashed #e2e8f0' }}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg"><Target size={18} /></div>
-              <h3 className="text-base font-black uppercase tracking-widest" style={{ color: '#0369a1' }}>Word Bank</h3>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {vocabulary.map((item, idx) => (
-                <div key={idx} className="p-4 rounded-2xl flex flex-col transition-all hover:scale-[1.02] shadow-sm hover:shadow-indigo-100 bg-white border-2 border-indigo-100/50">
-                  <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-                    <span className="font-black text-xl leading-tight" style={{ color: '#0c4a6e' }}>{item.word}</span>
-                    <span className="text-sm font-bold font-serif text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-xl border border-indigo-200 shadow-sm shrink-0">{item.ipa}</span>
-                  </div>
-                  <span className="text-base font-medium italic text-slate-700 whitespace-normal leading-relaxed mb-1">{item.meaning} {item.emoji}</span>
-                  {item.grammarSummary && (
-                    <div className="text-xs text-blue-700 mt-2 p-2 bg-blue-50 rounded-lg border border-blue-100">
-                      <strong>Ngữ pháp:</strong> {item.grammarSummary}
-                    </div>
-                  )}
-                  {item.example && (
-                    <div className="text-xs text-gray-700 mt-1 p-2 bg-gray-50 rounded-lg border border-gray-200 italic">
-                      <strong>Ví dụ:</strong> "{item.example}"
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Footer */}

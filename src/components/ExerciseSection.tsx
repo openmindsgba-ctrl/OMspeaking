@@ -36,7 +36,6 @@ const SpeakingQuestionItem: React.FC<SpeakingQuestionItemProps> = ({
   return (
     <div className="bg-white p-4 sm:p-6 rounded-2xl border-2 border-blue-100 shadow-sm mb-4">
       <h4 className="font-bold text-base sm:text-lg text-blue-900 mb-2">Câu {index + 1}: {question.questionText}</h4>
-      <p className="text-sm text-gray-500 mb-4 italic font-medium bg-gray-50 p-2 rounded-lg border border-gray-100">Gợi ý trả lời: {question.expectedAnswer}</p>
 
       <div className="flex items-center gap-4">
         {!isRecording ? (
@@ -76,6 +75,7 @@ const SpeakingQuestionItem: React.FC<SpeakingQuestionItemProps> = ({
                   {result.isCorrect ? 'Tuyệt vời! Bạn đã trả lời đúng ý.' : 'Chưa chính xác lắm, hãy thử lại nhé.'}
                 </span>
               </div>
+              <p className="text-sm font-medium text-gray-700 leading-relaxed bg-white p-3 rounded-lg border border-gray-100 shadow-sm"><strong>💡 Gợi ý trả lời:</strong> {question.expectedAnswer}</p>
               <p className="text-sm font-medium text-gray-700 leading-relaxed bg-white p-3 rounded-lg border border-gray-100 shadow-sm"><strong>🎙️ Bạn nói:</strong> "{result.transcribedText}"</p>
               <p className="text-sm text-gray-700 leading-relaxed bg-blue-100/50 p-3 rounded-lg border border-blue-100"><strong>👩‍🏫 Nhận xét:</strong> {result.feedback}</p>
             </div>
@@ -116,7 +116,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
           Luyện Nói - Trả Lời Câu Hỏi
         </h3>
         <p className="text-blue-100 mt-3 font-medium text-sm sm:text-base max-w-lg relative z-10">
-          Hãy đọc câu hỏi, suy nghĩ câu trả lời và bấm nút Micro để ghi âm câu trả lời của bạn nhé! Ms Trang sẽ chấm điểm và nhận xét cho bạn.
+          Hãy đọc câu hỏi, suy nghĩ câu trả lời và bấm nút Micro để ghi âm câu trả lời của bạn nhé! Ms. Yến sẽ chấm điểm và nhận xét cho bạn.
         </p>
       </div>
 

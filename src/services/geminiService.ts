@@ -91,10 +91,23 @@ const getAI = () => {
 };
 
 // Model fallback chain — use only currently available, non-deprecated models (Gemini 3.x generation)
-const TEXT_MODELS = [
-  "gemini-3.5-flash",
-  "gemini-3.1-flash-lite",
-];
+const getTextModels = () => {
+  const defaultModels = [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+  ];
+  if (typeof window !== "undefined") {
+    const savedModel = localStorage.getItem("GEMINI_MODEL");
+    if (savedModel && !defaultModels.includes(savedModel)) {
+      return [savedModel, ...defaultModels];
+    } else if (savedModel) {
+      return [savedModel, ...defaultModels.filter(m => m !== savedModel)];
+    }
+  }
+  return defaultModels;
+};
+
 
 // TTS-specific models (only these support responseModalities: [AUDIO] with speechConfig)
 const TTS_MODELS = [
@@ -108,7 +121,6 @@ export interface VocabularyItem {
   ipa: string;
   meaning: string;
   emoji?: string;
-  grammarSummary?: string;
   example?: string;
 }
 
@@ -118,23 +130,30 @@ export interface ContentGenerationResult {
   topicName: string;
   translation: string;
   vocabulary: VocabularyItem[];
+  overallGrammar?: string;
   readingText2?: string;
   translation2?: string;
+  reading2Answers?: string[];
 }
 
 export type EnglishLevel = "Starters" | "Movers" | "Flyers" | "A1" | "A2" | "B1" | "B2";
 
 /**
- * Classifies an API error and throws a standardized error message.
+ * Normalizes text to help match user input with expected strings.
  */
-function handleApiError(err: any): never {
-  console.error("Gemini API Error:", err);
-  
-  if (isQuotaError(err)) {
-    throw new Error("QUOTA_EXCEEDED");
-  }
+export const normalizeText = (text: string) => {
+  return text
+    .toLowerCase()
+    .replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+};
+
+const handleApiError = (err: any) => {
   if (isAuthError(err)) {
     throw new Error("INVALID_KEY");
+  } else if (isQuotaError(err)) {
+    throw new Error("QUOTA_EXCEEDED");
   }
   throw err;
 }
@@ -207,7 +226,7 @@ export const generateContent = async (
     ? `
   ⚠️ ABSOLUTE RULE FOR 'useInput' MODE:
   - Copy the user's input text EXACTLY into "readingText" (Word for word).
-  - Use the exact same input for "readingText2" but replace all instances of the 30 vocabulary words with "....................".
+  - Use the exact same input for "readingText2" but replace all instances of the 30 vocabulary words with numbered blanks like "(1)", "(2)", "(3)".
   - The "translation" and "translation2" must translate the FULL texts.
   ` 
     : '';
@@ -221,28 +240,31 @@ export const generateContent = async (
   Your task is to generate:
   1. An image generation prompt for a highly realistic, clear educational illustration matching the topic and grammar. Include quality keywords: "photorealistic, 8k UHD resolution, vivid colors".
   2. "readingText": A reading passage appropriate for level ${level}. MUST contain ALL 30 vocabulary words you generate (bold them using Markdown **word**). Incorporate the grammar topic: "${grammarTopic}". ${mode === 'useInput' ? "USE EXACT USER TEXT." : generateModeInstructions}
-  3. "readingText2": A SECOND reading passage with DIFFERENT content but using the SAME 30 vocabulary words and grammar topic. In this text, replace every occurrence of the 30 vocabulary words with exactly "...................." (20 dots) so students can listen and fill in the blanks.
-  4. A short title/topic name (max 5 words).
-  5. "translation": Vietnamese translation of readingText.
-  6. "translation2": Vietnamese translation of readingText2.
-  7. "vocabulary": A list of EXACTLY 30 key vocabulary words. For each word include:
+  3. "readingText2": A SECOND reading passage with DIFFERENT content but using the SAME 30 vocabulary words and grammar topic. In this text, replace every occurrence of the 30 vocabulary words with numbered blanks exactly like "(1)", "(2)", "(3)" etc. up to the total number of blanks.
+  4. "reading2Answers": An array of strings containing the correct words for each numbered blank in readingText2, in order.
+  5. A short title/topic name (max 5 words).
+  6. "translation": Vietnamese translation of readingText.
+  7. "translation2": Vietnamese translation of readingText2.
+  8. "vocabulary": A list of EXACTLY 30 key vocabulary words. For each word include:
      - "word": the English word
      - "ipa": phonetic transcription
      - "meaning": brief Vietnamese meaning
      - "emoji": a relevant emoji
-     - "grammarSummary": a brief summary of how it fits the grammar topic (in Vietnamese)
      - "example": a short example sentence in English using the word.
+  9. "overallGrammar": Tóm tắt ngữ pháp trọng tâm dưới dạng Markdown list phân cấp (dùng gạch đầu dòng -, thò thụt đầu dòng) để có thể hiển thị như một mindmap. Bắt buộc dùng tiếng Việt.
   
   Output the result strictly in JSON format:
   {
     "prompt": "string",
     "readingText": "string",
     "readingText2": "string",
+    "reading2Answers": ["string", "string"],
     "topicName": "string",
     "translation": "string",
     "translation2": "string",
+    "overallGrammar": "string",
     "vocabulary": [
-      { "word": "string", "ipa": "string", "meaning": "string", "emoji": "string", "grammarSummary": "string", "example": "string" }
+      { "word": "string", "ipa": "string", "meaning": "string", "emoji": "string", "example": "string" }
     ]
   }
   Note: Ensure exactly 30 vocabulary items.`;
@@ -257,7 +279,7 @@ export const generateContent = async (
     });
   }
 
-  const response = await generateWithFallback(TEXT_MODELS, {
+  const response = await generateWithFallback(getTextModels(), {
     contents: [{ role: "user", parts }],
     config: { 
       systemInstruction,
@@ -579,7 +601,7 @@ export const evaluateSpeech = async (
   level: EnglishLevel,
   mimeType: string = "audio/webm"
 ): Promise<EvaluationResult> => {
-  const systemInstruction = `Bạn là Ms Trang — giáo viên tiếng Anh, đóng vai giám khảo chấm phát âm theo chuẩn Khung tham chiếu Châu Âu (CEFR).
+  const systemInstruction = `Bạn là Ms. Yến — giáo viên tiếng Anh, đóng vai giám khảo chấm phát âm theo chuẩn Khung tham chiếu Châu Âu (CEFR).
 Bạn nghe audio thu âm từ micro trình duyệt (có thể là giọng trẻ em hoặc người lớn). Chất lượng audio có thể không hoàn hảo — hãy cố gắng HẾT SỨC để nhận diện nội dung người đọc nói.
 
 🎯 NHIỆM VỤ: Nghe audio → So sánh với bài gốc (Original Text) → Chấm điểm thang 10.
@@ -620,9 +642,9 @@ BƯỚC 5: PHÂN TÍCH IPA
 - Gợi ý cách sửa cụ thể (khẩu hình miệng, vị trí lưỡi, cách bật hơi).
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎀 PHONG CÁCH PHẢN HỒI (Ms Trang)
+🎀 PHONG CÁCH PHẢN HỒI (Ms. Yến)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Ấm áp, yêu thương, luôn bắt đầu bằng "Chào con, cô Trang đây!"
+- Ấm áp, yêu thương, luôn bắt đầu bằng "Chào con, cô Yến đây!"
 - Khen trước, góp ý sau. Mang tính kiến tạo.
 - Dù điểm thấp vẫn phải khuyến khích cố gắng.
 
@@ -645,7 +667,7 @@ Output JSON:
   const cleanMimeType = mimeType.split(';')[0].trim() || "audio/webm";
   console.log(`[Speech Eval] Sending audio: mimeType=${cleanMimeType}, originalMime=${mimeType}, dataLength=${audioData.length}`);
 
-  const response = await generateWithFallback(TEXT_MODELS, {
+  const response = await generateWithFallback(getTextModels(), {
     contents: [
       {
         role: "user",
@@ -750,7 +772,7 @@ Output strictly a JSON object matching this schema:
   ]
 }`;
 
-  const response = await generateWithFallback(TEXT_MODELS, {
+  const response = await generateWithFallback(getTextModels(), {
     contents: [{ role: "user", parts: [{ text: `Reading Text: ${readingText}` }] }],
     config: { 
       systemInstruction,
@@ -781,7 +803,7 @@ export const evaluateSpeakingAnswer = async (
   isCorrect: boolean;
   transcribedText: string;
 }> => {
-  const systemInstruction = `Bạn là Ms Trang — giáo viên tiếng Anh, đóng vai giám khảo chấm điểm câu trả lời của học sinh.
+  const systemInstruction = `Bạn là Ms. Yến — giáo viên tiếng Anh, đóng vai giám khảo chấm điểm câu trả lời của học sinh.
 Bạn nghe audio thu âm từ micro trình duyệt.
 
 🎯 NHIỆM VỤ: Nghe audio → Ghi lại nguyên văn những gì nghe được (transcribedText) → So sánh với câu trả lời mẫu (expectedAnswer) → Đánh giá xem học sinh trả lời đúng hay sai ý của câu hỏi → Chấm điểm (thang 10) và đưa ra nhận xét.
@@ -799,12 +821,12 @@ Output JSON:
 
   const cleanMimeType = mimeType.split(';')[0].trim() || "audio/webm";
 
-  const response = await generateWithFallback(TEXT_MODELS, {
+  const response = await generateWithFallback(getTextModels(), {
     contents: [
       {
         role: "user",
         parts: [
-          { text: \`Hãy nghe file audio bên dưới và đánh giá câu trả lời.\` },
+          { text: 'Hãy nghe file audio bên dưới và đánh giá câu trả lời.' },
           {
             inlineData: {
               mimeType: cleanMimeType,
