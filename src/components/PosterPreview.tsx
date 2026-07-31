@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { FileText, Volume2, Pause, RefreshCw, Target, Play } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { FileText, Volume2, Pause, RefreshCw, Target, Play, BookOpen, Lightbulb, Zap } from 'lucide-react';
 import { VocabularyItem, EnglishLevel } from '../types';
 
 interface PosterPreviewProps {
@@ -111,6 +111,234 @@ const MindMapTree = ({ nodes, level = 0 }: { nodes: MindMapNode[], level?: numbe
   );
 };
 
+// ====== GRAMMAR DETAIL SECTION ======
+interface GrammarBlock {
+  title: string;
+  explanation: string;
+  formula: string | null;
+  examples: string[];
+  tip: string | null;
+}
+
+const parseGrammarBlocks = (md: string): GrammarBlock[] => {
+  const lines = md.split('\n').filter(l => l.trim().length > 0);
+  const blocks: GrammarBlock[] = [];
+  let current: Partial<GrammarBlock> | null = null;
+  let collectingExamples = false;
+  let collectingTip = false;
+
+  const flushBlock = () => {
+    if (current && current.title) {
+      blocks.push({
+        title: current.title || '',
+        explanation: current.explanation || '',
+        formula: current.formula || null,
+        examples: current.examples || [],
+        tip: current.tip || null,
+      });
+    }
+    current = null;
+    collectingExamples = false;
+    collectingTip = false;
+  };
+
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    const cleanLine = trimmed.replace(/^-\s*/, '').replace(/\*\*/g, '');
+
+    // Detect top-level grammar point (no leading spaces or minimal indent)
+    const indent = line.search(/\S/);
+    const isBullet = trimmed.startsWith('-');
+
+    if (isBullet && indent <= 2) {
+      // This is a top-level grammar point
+      flushBlock();
+      current = { title: cleanLine, explanation: '', formula: null, examples: [], tip: null };
+      collectingExamples = false;
+      collectingTip = false;
+    } else if (current) {
+      const lower = cleanLine.toLowerCase();
+      
+      // Detect formula / công thức / cấu trúc
+      if (lower.includes('công thức') || lower.includes('cấu trúc') || lower.includes('structure') || lower.includes('formula') || lower.includes('pattern')) {
+        const formulaContent = cleanLine.replace(/^(công thức|cấu trúc|structure|formula|pattern)\s*[:：]\s*/i, '').trim();
+        if (formulaContent) {
+          current.formula = formulaContent;
+        }
+        collectingExamples = false;
+        collectingTip = false;
+      }
+      // Detect examples / ví dụ
+      else if (lower.includes('ví dụ') || lower.includes('example') || lower.includes('e.g.')) {
+        collectingExamples = true;
+        collectingTip = false;
+        const exContent = cleanLine.replace(/^(ví dụ|example|e\.g\.)\s*[:：]\s*/i, '').trim();
+        if (exContent) {
+          (current.examples = current.examples || []).push(exContent);
+        }
+      }
+      // Detect tips / mẹo
+      else if (lower.includes('mẹo') || lower.includes('tip') || lower.includes('lưu ý') || lower.includes('nhớ') || lower.includes('ghi nhớ')) {
+        collectingTip = true;
+        collectingExamples = false;
+        const tipContent = cleanLine.replace(/^(mẹo|tip|lưu ý|ghi nhớ|nhớ)\s*[:：]\s*/i, '').trim();
+        current.tip = tipContent || null;
+      }
+      // Continue collecting examples or add to explanation
+      else if (collectingExamples && cleanLine) {
+        (current.examples = current.examples || []).push(cleanLine);
+      }
+      else if (collectingTip && cleanLine) {
+        current.tip = (current.tip ? current.tip + ' ' : '') + cleanLine;
+      }
+      else if (cleanLine) {
+        // Check if this looks like a formula (contains S + V, arrows, etc.)
+        if (cleanLine.match(/[+→=>]/) && cleanLine.length < 100) {
+          current.formula = cleanLine;
+        } else {
+          current.explanation = (current.explanation ? current.explanation + ' ' : '') + cleanLine;
+        }
+      }
+    }
+  });
+  flushBlock();
+
+  // Fallback: if no blocks were parsed, create a single block from the text
+  if (blocks.length === 0 && md.trim()) {
+    blocks.push({
+      title: 'Ngữ pháp trọng tâm',
+      explanation: md.replace(/\*\*/g, '').replace(/^-\s*/gm, ''),
+      formula: null,
+      examples: [],
+      tip: null,
+    });
+  }
+
+  return blocks;
+};
+
+const GRAMMAR_COLORS = [
+  { bg: 'bg-blue-50', border: 'border-blue-200', header: 'bg-gradient-to-r from-blue-600 to-blue-700', badge: 'bg-blue-100 text-blue-700', accent: 'text-blue-600' },
+  { bg: 'bg-emerald-50', border: 'border-emerald-200', header: 'bg-gradient-to-r from-emerald-600 to-teal-600', badge: 'bg-emerald-100 text-emerald-700', accent: 'text-emerald-600' },
+  { bg: 'bg-violet-50', border: 'border-violet-200', header: 'bg-gradient-to-r from-violet-600 to-purple-600', badge: 'bg-violet-100 text-violet-700', accent: 'text-violet-600' },
+  { bg: 'bg-amber-50', border: 'border-amber-200', header: 'bg-gradient-to-r from-amber-600 to-orange-600', badge: 'bg-amber-100 text-amber-700', accent: 'text-amber-600' },
+  { bg: 'bg-rose-50', border: 'border-rose-200', header: 'bg-gradient-to-r from-rose-600 to-pink-600', badge: 'bg-rose-100 text-rose-700', accent: 'text-rose-600' },
+];
+
+const GrammarDetailSection: React.FC<{ grammarText: string }> = ({ grammarText }) => {
+  const blocks = useMemo(() => parseGrammarBlocks(grammarText), [grammarText]);
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(0);
+
+  return (
+    <div className="mt-6 space-y-4">
+      {/* Section Header */}
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-9 h-9 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+          <BookOpen size={18} />
+        </div>
+        <div>
+          <h3 className="text-base font-black uppercase tracking-widest" style={{ color: '#4338ca' }}>
+            Tóm Tắt Ngữ Pháp
+          </h3>
+          <p className="text-[10px] text-slate-400 font-medium">Grammar Summary & Examples</p>
+        </div>
+      </div>
+
+      {/* Grammar Cards */}
+      <div className="space-y-3">
+        {blocks.map((block, idx) => {
+          const colors = GRAMMAR_COLORS[idx % GRAMMAR_COLORS.length];
+          const isExpanded = expandedIdx === idx;
+
+          return (
+            <div
+              key={idx}
+              className={`rounded-2xl border-2 ${colors.border} ${colors.bg} overflow-hidden transition-all duration-300 shadow-sm hover:shadow-md`}
+            >
+              {/* Card Header - clickable */}
+              <button
+                onClick={() => setExpandedIdx(isExpanded ? null : idx)}
+                className={`w-full flex items-center gap-3 p-3 sm:p-4 text-left transition-all ${isExpanded ? colors.header + ' text-white' : 'hover:bg-white/50'}`}
+              >
+                <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${isExpanded ? 'bg-white/20 text-white' : colors.badge}`}>
+                  {idx + 1}
+                </span>
+                <span className={`text-sm sm:text-base font-bold flex-1 ${isExpanded ? 'text-white' : 'text-slate-800'}`}>
+                  {block.title}
+                </span>
+                <span className={`text-xs transition-transform duration-300 ${isExpanded ? 'rotate-180 text-white/70' : 'text-slate-400'}`}>
+                  ▼
+                </span>
+              </button>
+
+              {/* Card Body - expandable */}
+              {isExpanded && (
+                <div className="p-3 sm:p-4 space-y-3 animate-in fade-in duration-300">
+                  {/* Explanation */}
+                  {block.explanation && (
+                    <div className="text-sm text-slate-700 leading-relaxed">
+                      <span className="font-semibold text-slate-500 text-xs uppercase tracking-wide mr-1">📖 Giải thích:</span>
+                      <span>{block.explanation}</span>
+                    </div>
+                  )}
+
+                  {/* Formula / Structure */}
+                  {block.formula && (
+                    <div className="relative p-3 sm:p-4 rounded-xl bg-white border-2 border-dashed border-indigo-200 shadow-inner">
+                      <div className="absolute -top-2.5 left-3 px-2 py-0.5 bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest rounded-md shadow-sm">
+                        Công thức
+                      </div>
+                      <p className="text-base sm:text-lg font-black text-center text-indigo-800 mt-1 font-mono tracking-wide">
+                        {block.formula}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Examples */}
+                  {block.examples.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5">
+                        <Zap size={14} className={colors.accent} />
+                        <span className="text-xs font-black uppercase tracking-wide text-slate-500">Ví dụ minh họa</span>
+                      </div>
+                      <div className="space-y-2 pl-1">
+                        {block.examples.map((ex, exIdx) => (
+                          <div
+                            key={exIdx}
+                            className="flex items-start gap-2 p-2.5 sm:p-3 rounded-xl bg-white border border-slate-100 shadow-sm hover:border-indigo-200 transition-colors"
+                          >
+                            <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">
+                              {exIdx + 1}
+                            </span>
+                            <p className="text-sm text-slate-700 leading-relaxed italic">
+                              "{ex}"
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tip */}
+                  {block.tip && (
+                    <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200/60">
+                      <Lightbulb size={16} className="text-amber-500 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-wide text-amber-600 block mb-0.5">💡 Mẹo ghi nhớ</span>
+                        <p className="text-xs text-amber-800 leading-relaxed font-medium">{block.tip}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export const PosterPreview: React.FC<PosterPreviewProps> = ({
   readingText, translationText, vocabulary,
   generatedTopicName, topic, level, showTranslation,
@@ -200,12 +428,18 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
 
           {/* Grammar Summary */}
           {grammarSummary && (
-            <div className="mt-6 p-5 bg-indigo-50 border-2 border-indigo-200 rounded-[1.5rem] shadow-sm overflow-x-auto">
-              <h4 className="text-sm font-black text-indigo-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-                Mindmap Ngữ Pháp
-              </h4>
-              <MindMapTree nodes={parseMarkdownToTree(grammarSummary)} />
-            </div>
+            <>
+              {/* Mindmap View */}
+              <div className="mt-6 p-5 bg-indigo-50 border-2 border-indigo-200 rounded-[1.5rem] shadow-sm overflow-x-auto">
+                <h4 className="text-sm font-black text-indigo-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  Mindmap Ngữ Pháp
+                </h4>
+                <MindMapTree nodes={parseMarkdownToTree(grammarSummary)} />
+              </div>
+
+              {/* Detailed Grammar Summary with Examples */}
+              <GrammarDetailSection grammarText={grammarSummary} />
+            </>
           )}
 
           <div className="bg-white/40 mt-8 p-3 sm:p-4 md:p-8 rounded-[2rem] border-2 border-white shadow-lg backdrop-blur-sm mx-auto w-full max-w-[95%]">

@@ -143,6 +143,21 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
               {scoreStr} <span className="text-base text-blue-400">/ 10</span>
             </div>
           </div>
+
+          <div className="flex items-start gap-3 p-4 bg-pink-50 border-2 border-pink-100 rounded-xl">
+            <div className="w-10 h-10 rounded-full bg-pink-200 border-2 border-pink-300 flex items-center justify-center shrink-0">
+               <span className="text-xl">👩‍🏫</span>
+            </div>
+            <div>
+              <h4 className="font-black text-pink-700 text-sm mb-1">Nhận xét của Ms. Yến</h4>
+              <p className="text-pink-900 font-medium text-sm">
+                {parseFloat(scoreStr) >= 9 ? "Tuyệt vời quá con yêu! Con làm rất xuất sắc, cô Yến rất tự hào về con! 🌟" :
+                 parseFloat(scoreStr) >= 7 ? "Làm tốt lắm! Con hãy xem lại phần gợi ý để rút kinh nghiệm nhé, sắp hoàn hảo rồi! 👍" :
+                 parseFloat(scoreStr) >= 5 ? "Cố lên con! Lần sau con chú ý nghe kỹ hơn một chút là điểm sẽ cao ngay. Cô tin con làm được! 💪" :
+                 "Không sao đâu con, bài này hơi khó một chút. Con hãy nghe lại và làm lại cùng cô Yến nhé! ❤️"}
+              </p>
+            </div>
+          </div>
           
           <div className="p-4 bg-slate-100 rounded-xl space-y-2 text-sm border border-slate-200">
             <h4 className="font-black text-slate-700 flex items-center gap-2">

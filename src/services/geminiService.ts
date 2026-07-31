@@ -251,7 +251,7 @@ export const generateContent = async (
      - "meaning": brief Vietnamese meaning
      - "emoji": a relevant emoji
      - "example": a short example sentence in English using the word.
-  9. "overallGrammar": Tóm tắt ngữ pháp trọng tâm dưới dạng Markdown list phân cấp (dùng gạch đầu dòng -, thò thụt đầu dòng) để có thể hiển thị như một mindmap. Bắt buộc dùng tiếng Việt.
+  9. "overallGrammar": Tóm tắt ngữ pháp trọng tâm dưới dạng Markdown list phân cấp (dùng gạch đầu dòng -, thò thụt đầu dòng) để có thể hiển thị như một mindmap. Bao gồm: giải thích ngắn gọn dễ hiểu, công thức (nếu có), ví dụ cụ thể và mẹo ghi nhớ nhanh. Bắt buộc dùng tiếng Việt.
   
   Output the result strictly in JSON format:
   {
