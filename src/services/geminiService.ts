@@ -9,24 +9,76 @@ const parseSafeJson = (text: string) => {
   try {
     return JSON.parse(cleaned);
   } catch (err) {
-    // If generation was truncated due to length limits (30 questions), attempt to gracefully auto-close the JSON
-    const fixes = [
-      cleaned,
+    // If generation was truncated due to length limits, attempt to gracefully auto-close the JSON
+    // Strategy: progressively trim the broken tail and try to close brackets/braces
+    
+    // First, try simple suffix fixes
+    const simpleFixes = [
       cleaned + '}',
       cleaned + ']}',
       cleaned + '}]}',
+      cleaned + '"}',
+      cleaned + '"]}',
       cleaned + '"}]}',
-      cleaned.replace(/,\s*$/, '') + ']}', // Remove trailing comma and close
-      cleaned.replace(/,\s*$/, '') + '}]}'
+      cleaned + '""}}',
+      cleaned.replace(/,\s*$/, '') + ']}',
+      cleaned.replace(/,\s*$/, '') + '}]}',
+      cleaned.replace(/,\s*$/, '') + '}',
     ];
     
-    for (const fix of fixes) {
+    for (const fix of simpleFixes) {
       try {
         return JSON.parse(fix);
       } catch (e) {
         // Continue trying
       }
     }
+
+    // Advanced repair: strip broken tail content and try to close
+    // Find the last complete key-value pair and close from there
+    let repairable = cleaned;
+    
+    // If truncated mid-string, find last complete quote and close it
+    const quoteCount = (repairable.match(/(?<!\\)"/g) || []).length;
+    if (quoteCount % 2 !== 0) {
+      // Odd number of quotes means a string was cut - remove the partial string
+      const lastQuote = repairable.lastIndexOf('"');
+      repairable = repairable.substring(0, lastQuote) + '"';
+    }
+    
+    // Remove trailing comma after cleanup
+    repairable = repairable.replace(/,\s*$/, '');
+    
+    // Count unmatched brackets and braces, then close them
+    let braces = 0, brackets = 0;
+    let inString = false;
+    for (let i = 0; i < repairable.length; i++) {
+      const ch = repairable[i];
+      if (ch === '"' && (i === 0 || repairable[i-1] !== '\\')) {
+        inString = !inString;
+      } else if (!inString) {
+        if (ch === '{') braces++;
+        else if (ch === '}') braces--;
+        else if (ch === '[') brackets++;
+        else if (ch === ']') brackets--;
+      }
+    }
+    
+    // Close any unclosed brackets/braces
+    const closers = ']'.repeat(Math.max(0, brackets)) + '}'.repeat(Math.max(0, braces));
+    const advancedFixes = [
+      repairable + closers,
+      repairable.replace(/,\s*$/, '') + closers,
+    ];
+    
+    for (const fix of advancedFixes) {
+      try {
+        return JSON.parse(fix);
+      } catch (e) {
+        // Continue
+      }
+    }
+    
     throw err; // If all fixes fail, throw the original error
   }
 };
@@ -284,7 +336,7 @@ export const generateContent = async (
     config: { 
       systemInstruction,
       responseMimeType: "application/json",
-      maxOutputTokens: 8192,
+      maxOutputTokens: 16384,
     },
   });
 
@@ -309,7 +361,9 @@ export const generateContent = async (
       topicName: result.topicName || (input.length < 50 ? input : "English Lesson"),
       translation: result.translation || "",
       translation2: result.translation2 || "",
-      vocabulary: result.vocabulary || []
+      vocabulary: result.vocabulary || [],
+      overallGrammar: result.overallGrammar || "",
+      reading2Answers: result.reading2Answers || [],
     };
   } catch (e) {
     console.error("Failed to parse JSON response:", response.text, e);
