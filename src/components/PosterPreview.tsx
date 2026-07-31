@@ -429,9 +429,15 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
               </div>
             </div>
           )}
-
-
-
+          {/* Grammar Summary */}
+          {grammarSummary && (
+            <div className="mt-6 p-5 bg-indigo-50 border-2 border-indigo-200 rounded-[1.5rem] shadow-sm overflow-x-auto">
+              <h4 className="text-sm font-black text-indigo-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                Mindmap Ngữ Pháp
+              </h4>
+              <MindMapTree nodes={parseMarkdownToTree(grammarSummary)} />
+            </div>
+          )}
           <div className="bg-white/40 mt-8 p-3 sm:p-4 md:p-8 rounded-[2rem] border-2 border-white shadow-lg backdrop-blur-sm mx-auto w-full max-w-[95%]">
             {(generatedTopicName || (topic && topic.length < 50)) && (
               <div className="text-center mb-6">
