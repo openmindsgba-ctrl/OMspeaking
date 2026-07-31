@@ -28,10 +28,14 @@ const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5];
 
 const renderMarkdown = (text: string) => {
   if (!text) return null;
-  const parts = text.split(/(\*\*.*?\*\*)/g);
+  // Strip ALL asterisks from the text
+  let cleaned = text.replace(/\*/g, '');
+  // Support both [word] bracket notation and **word** markdown for backward compatibility
+  // Split on [word] brackets OR **word** patterns
+  const parts = cleaned.split(/(\[.*?\])/g);
   return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-black text-brand-blue-dark">{part.slice(2, -2)}</strong>;
+    if (part.startsWith('[') && part.endsWith(']')) {
+      return <strong key={i} className="font-black text-brand-blue-dark">{part.slice(1, -1)}</strong>;
     }
     return <span key={i} className="font-medium">{part}</span>;
   });
@@ -426,21 +430,7 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
             </div>
           )}
 
-          {/* Grammar Summary */}
-          {grammarSummary && (
-            <>
-              {/* Mindmap View */}
-              <div className="mt-6 p-5 bg-indigo-50 border-2 border-indigo-200 rounded-[1.5rem] shadow-sm overflow-x-auto">
-                <h4 className="text-sm font-black text-indigo-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  Mindmap Ngữ Pháp
-                </h4>
-                <MindMapTree nodes={parseMarkdownToTree(grammarSummary)} />
-              </div>
 
-              {/* Detailed Grammar Summary with Examples */}
-              <GrammarDetailSection grammarText={grammarSummary} />
-            </>
-          )}
 
           <div className="bg-white/40 mt-8 p-3 sm:p-4 md:p-8 rounded-[2rem] border-2 border-white shadow-lg backdrop-blur-sm mx-auto w-full max-w-[95%]">
             {(generatedTopicName || (topic && topic.length < 50)) && (

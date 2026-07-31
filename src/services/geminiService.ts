@@ -289,9 +289,10 @@ export const generateContent = async (
 
   const systemInstruction = `You are an expert English teacher.
   ${useInputInstructions}
+  CRITICAL RULE: NEVER use asterisks (*) anywhere in your output. Do NOT use markdown bold (**word**) or any * character at all.
   Your task is to generate:
   1. An image generation prompt for a highly realistic, clear educational illustration matching the topic and grammar. Include quality keywords: "photorealistic, 8k UHD resolution, vivid colors".
-  2. "readingText": A reading passage appropriate for level ${level}. MUST contain ALL 30 vocabulary words you generate (bold them using Markdown **word**). Incorporate the grammar topic: "${grammarTopic}". ${mode === 'useInput' ? "USE EXACT USER TEXT." : generateModeInstructions}
+  2. "readingText": A reading passage appropriate for level ${level}. MUST contain ALL 30 vocabulary words you generate. Mark vocabulary words by wrapping them in square brackets like [word]. Incorporate the grammar topic: "${grammarTopic}". ${mode === 'useInput' ? "USE EXACT USER TEXT." : generateModeInstructions}
   3. "readingText2": A SECOND reading passage with DIFFERENT content but using the SAME 30 vocabulary words and grammar topic. In this text, replace every occurrence of the 30 vocabulary words with numbered blanks exactly like "(1)", "(2)", "(3)" etc. up to the total number of blanks.
   4. "reading2Answers": An array of strings containing the correct words for each numbered blank in readingText2, in order.
   5. A short title/topic name (max 5 words).
@@ -303,7 +304,6 @@ export const generateContent = async (
      - "meaning": brief Vietnamese meaning
      - "emoji": a relevant emoji
      - "example": a short example sentence in English using the word.
-  9. "overallGrammar": Tóm tắt ngữ pháp trọng tâm dưới dạng Markdown list phân cấp (dùng gạch đầu dòng -, thò thụt đầu dòng) để có thể hiển thị như một mindmap. Bao gồm: giải thích ngắn gọn dễ hiểu, công thức (nếu có), ví dụ cụ thể và mẹo ghi nhớ nhanh. Bắt buộc dùng tiếng Việt.
   
   Output the result strictly in JSON format:
   {
@@ -314,12 +314,11 @@ export const generateContent = async (
     "topicName": "string",
     "translation": "string",
     "translation2": "string",
-    "overallGrammar": "string",
     "vocabulary": [
       { "word": "string", "ipa": "string", "meaning": "string", "emoji": "string", "example": "string" }
     ]
   }
-  Note: Ensure exactly 30 vocabulary items.`;
+  Note: Ensure exactly 30 vocabulary items. NEVER use the * character anywhere.`;
 
   const parts: any[] = [{ text: `Topic/Content: ${input}\nGrammar Topic: ${grammarTopic}\nLevel: ${level}\nMode: ${mode}` }];
   if (imageData) {

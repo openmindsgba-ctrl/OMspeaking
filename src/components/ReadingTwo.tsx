@@ -158,15 +158,35 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
               </p>
             </div>
           </div>
-          
-          <div className="p-4 bg-slate-100 rounded-xl space-y-2 text-sm border border-slate-200">
-            <h4 className="font-black text-slate-700 flex items-center gap-2">
-              <CheckCircle size={18} className="text-green-600" />
-              Gợi ý trả lời & Dịch nghĩa
-            </h4>
-            <p className="font-bold text-slate-800">
-              {answers?.map((ans, idx) => `(${idx + 1}) ${ans}`).join(' • ')}
-            </p>
+
+            <div className="p-4 bg-slate-100 rounded-xl space-y-3 text-sm border border-slate-200">
+              <h4 className="font-black text-slate-700 flex items-center gap-2">
+                <CheckCircle size={18} className="text-green-600" />
+                Gợi ý trả lời, Phiên âm & Dịch nghĩa
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {answers?.map((ans, idx) => {
+                  const vocabMatch = vocabulary.find(v => v.word.toLowerCase() === ans.toLowerCase());
+                  return (
+                    <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200">
+                      <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-black shrink-0">
+                        {idx + 1}
+                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-black text-slate-800">{ans}</span>
+                          {vocabMatch?.ipa && (
+                            <span className="text-xs text-indigo-600 font-semibold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">{vocabMatch.ipa}</span>
+                          )}
+                        </div>
+                        {vocabMatch?.meaning && (
+                          <span className="text-xs text-slate-500 italic truncate">{vocabMatch.meaning}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             {showTranslation && translationText && (
               <p className="mt-4 text-slate-600 italic">
                 {translationText}
