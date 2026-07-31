@@ -5,15 +5,19 @@ export type { EvaluationResult, EnglishLevel, VocabularyItem };
 export type AspectRatio = "1:1" | "3:4" | "4:3" | "9:16" | "16:9";
 export type ContentMode = "generate" | "useInput" | "image";
 
-export interface SpeakingQuestion {
+export type QuestionType = 'fill_blank' | 'rearrange' | 'find_mistake' | 'complete_sentence';
+
+export interface WrittenQuestion {
   id: string;
+  type: QuestionType;
   questionText: string;
+  suggestedWords?: string; // used for fill_blank or complete_sentence
   expectedAnswer: string;
   explanation: string;
 }
 
 export interface ExerciseData {
-  speakingQuestions: SpeakingQuestion[]; // 10 questions
+  questions: WrittenQuestion[]; // 30 questions
 }
 
 export interface AppState {

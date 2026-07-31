@@ -801,29 +801,34 @@ export const generateExercise = async (
   readingText: string,
   level: EnglishLevel
 ): Promise<ExerciseData> => {
-  const systemInstruction = `You are a highly skilled English pedagogical expert and school teacher. Create exactly 10 speaking questions based ON THE PROVIDED READING TEXT.
-The student level is: ${level}. Ensure all questions and expected answers are grammatically correct and appropriate for the level.
+  const systemInstruction = `You are a highly skilled English pedagogical expert and school teacher. Create EXACTLY 30 written exercises based ON THE PROVIDED READING TEXT and general English knowledge appropriate for level ${level}.
 
-The questions must be structured exactly as requested in the JSON format.
-There must be EXACTLY 10 speaking questions.
+The 30 questions MUST be divided into 4 types:
+1. "fill_blank" (approx 8 questions): Điền từ thích hợp vào chỗ trống. Provide the sentence with a blank (e.g., "___"). Provide the suggested words to choose from in "suggestedWords" (e.g., "apple, banana, orange").
+2. "rearrange" (approx 7 questions): Sắp xếp lại các từ thành câu hoàn chỉnh. Provide the scrambled words in "questionText" (e.g., "dog / the / barking / is").
+3. "find_mistake" (approx 8 questions): Tìm lỗi sai và sửa chúng. Provide a sentence with one grammatical or vocabulary mistake in "questionText". 
+4. "complete_sentence" (approx 7 questions): Hoàn thành câu sử dụng những từ đã cho. Provide a prompt or start of a sentence and some suggested words in "suggestedWords" (e.g., "if / rain / stay / home").
 
-IMPORTANT RULES FOR A 20-YEAR EXPERIENCED TEACHER:
-1. Focus on Reading Comprehension (main idea, details, inference, vocabulary in context).
-2. The questions should be designed so the student can answer them by speaking.
-3. Provide the "expectedAnswer", which can be a short or full sentence. This will be used to evaluate the student's spoken response.
-4. Provide a brief, encouraging pedagogical "explanation" STRICTLY IN VIETNAMESE (e.g., "Câu trả lời nằm ở đoạn 2, khi nhân vật đang ở công viên.").
-5. All IDs must be unique strings (e.g., "sq1", "sq2").
+IMPORTANT RULES:
+1. Ensure all questions and expected answers are grammatically correct and appropriate for the level.
+2. Provide the "expectedAnswer" which is the correct final string the user should type.
+3. Provide a brief, encouraging pedagogical "explanation" STRICTLY IN VIETNAMESE (e.g., "Câu này dùng thì hiện tại đơn vì diễn tả thói quen.").
+4. All IDs must be unique strings (e.g., "wq1", "wq2", ..., "wq30").
+5. The output must strictly match the JSON schema.
+6. Do NOT use markdown bold (**) or asterisks in your output, just plain text or bracket notation if necessary.
 
 Output strictly a JSON object matching this schema:
 {
-  "speakingQuestions": [
+  "questions": [
     { 
-      "id": "sq1", 
-      "questionText": "What did the boy do at the park?", 
-      "expectedAnswer": "He played football with his friends.", 
-      "explanation": "..." 
+      "id": "wq1", 
+      "type": "fill_blank",
+      "questionText": "I ___ a book every day.", 
+      "suggestedWords": "read, reads, reading",
+      "expectedAnswer": "read", 
+      "explanation": "Chủ ngữ I đi với động từ nguyên thể." 
     },
-    ... 10 items
+    ... 30 items
   ]
 }`;
 
@@ -833,7 +838,7 @@ Output strictly a JSON object matching this schema:
       systemInstruction,
       responseMimeType: "application/json",
       temperature: 0.2, // keep it deterministic
-      maxOutputTokens: 8192
+      maxOutputTokens: 16384
     },
   });
 
@@ -842,7 +847,7 @@ Output strictly a JSON object matching this schema:
     return result as ExerciseData;
   } catch (err: any) {
     console.error("Exercise Generation Error:", err);
-    throw new Error("Failed to generate speaking exercises. Please try again.");
+    throw new Error("Failed to generate written exercises. Please try again.");
   }
 };
 

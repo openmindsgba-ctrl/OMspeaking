@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { ExerciseData, SpeakingQuestion } from '../types';
-import { Mic, Square, CheckCircle, X, RefreshCw, AlertCircle, Award } from 'lucide-react';
-import { useQuestionRecorder } from '../hooks/useQuestionRecorder';
+import React, { useState } from 'react';
+import { ExerciseData, WrittenQuestion, QuestionType } from '../types';
+import { CheckCircle, X, Award, Edit3, HelpCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface ExerciseSectionProps {
@@ -10,144 +9,200 @@ interface ExerciseSectionProps {
   savedScore?: number | null;
 }
 
-interface SpeakingQuestionItemProps {
-  question: SpeakingQuestion;
-  index: number;
-  onResult: (score: number, isCorrect: boolean) => void;
-}
-
-const SpeakingQuestionItem: React.FC<SpeakingQuestionItemProps> = ({ 
-  question, 
-  index,
-  onResult
-}) => {
-  const { isRecording, isEvaluating, result, error, startRecording, stopRecording } = useQuestionRecorder(
-    question.questionText,
-    question.expectedAnswer,
-    "A1" // generic level for now since prompt mainly relies on question/answer matching
-  );
-
-  useEffect(() => {
-    if (result) {
-      onResult(result.score, result.isCorrect);
-    }
-  }, [result]);
-
-  return (
-    <div className="bg-white p-4 sm:p-6 rounded-2xl border-2 border-blue-100 shadow-sm mb-4">
-      <h4 className="font-bold text-base sm:text-lg text-blue-900 mb-2">Câu {index + 1}: {question.questionText}</h4>
-
-      <div className="flex items-center gap-4">
-        {!isRecording ? (
-          <button 
-            onClick={startRecording}
-            disabled={isEvaluating}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-white transition-all
-              ${isEvaluating ? 'bg-gray-300' : 'bg-red-500 hover:bg-red-600 shadow-md hover:shadow-lg active:scale-95'}`}
-          >
-            {isEvaluating ? <RefreshCw className="animate-spin" size={20} /> : <Mic size={20} />}
-            {isEvaluating ? 'Đang chấm điểm...' : 'Bấm để trả lời'}
-          </button>
-        ) : (
-          <button 
-            onClick={stopRecording}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gray-800 hover:bg-gray-900 shadow-md active:scale-95 text-white rounded-xl font-bold transition-all animate-pulse border-2 border-red-500/50"
-          >
-            <Square size={20} className="fill-current text-red-500" /> Dừng thu âm
-          </button>
-        )}
-        {isRecording && <span className="text-sm font-bold text-red-500 animate-pulse">Đang nghe...</span>}
-      </div>
-
-      {error && (
-        <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-lg flex items-start gap-2 text-sm font-medium border border-red-100">
-          <AlertCircle size={16} className="mt-0.5 shrink-0" /> <span className="leading-relaxed">{error}</span>
-        </div>
-      )}
-
-      {result && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-5 p-4 sm:p-5 rounded-xl border-2 bg-blue-50/50 border-blue-100">
-          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-            <div className="space-y-3 flex-1">
-              <div className="flex items-center gap-2 bg-white w-fit px-3 py-1.5 rounded-lg shadow-sm">
-                {result.isCorrect ? <CheckCircle className="text-green-600" size={18} /> : <X className="text-red-500" size={18} />}
-                <span className={`font-black text-sm ${result.isCorrect ? 'text-green-700' : 'text-red-600'}`}>
-                  {result.isCorrect ? 'Tuyệt vời! Bạn đã trả lời đúng ý.' : 'Chưa chính xác lắm, hãy thử lại nhé.'}
-                </span>
-              </div>
-              <p className="text-sm font-medium text-gray-700 leading-relaxed bg-white p-3 rounded-lg border border-gray-100 shadow-sm"><strong>💡 Gợi ý trả lời:</strong> {question.expectedAnswer}</p>
-              <p className="text-sm font-medium text-gray-700 leading-relaxed bg-white p-3 rounded-lg border border-gray-100 shadow-sm"><strong>🎙️ Bạn nói:</strong> "{result.transcribedText}"</p>
-              <p className="text-sm text-gray-700 leading-relaxed bg-blue-100/50 p-3 rounded-lg border border-blue-100"><strong>👩‍🏫 Nhận xét:</strong> {result.feedback}</p>
-            </div>
-            <div className="flex flex-col items-center justify-center w-full sm:w-auto p-4 bg-white rounded-xl shadow-sm border-2 border-indigo-50 sm:min-w-[100px]">
-              <span className="text-xs font-black text-indigo-300 uppercase tracking-widest mb-1">Điểm</span>
-              <span className={`text-3xl font-black ${result.score >= 8 ? 'text-green-500' : result.score >= 5 ? 'text-yellow-500' : 'text-red-500'}`}>
-                {result.score}<span className="text-lg text-gray-300">/10</span>
-              </span>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </div>
-  );
+const TYPE_LABELS: Record<QuestionType, string> = {
+  fill_blank: "Phần 1: Điền từ thích hợp vào chỗ trống",
+  rearrange: "Phần 2: Sắp xếp lại các từ thành câu hoàn chỉnh",
+  find_mistake: "Phần 3: Tìm lỗi sai và sửa chúng",
+  complete_sentence: "Phần 4: Hoàn thành câu sử dụng những từ đã cho"
 };
 
 export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, onComplete, savedScore }) => {
-  const [scores, setScores] = useState<Record<number, number>>({});
-  const [correctAnswers, setCorrectAnswers] = useState<Record<number, boolean>>({});
+  const [userInputs, setUserInputs] = useState<Record<string, string>>({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleResult = (index: number, score: number, isCorrect: boolean) => {
-    setScores(prev => ({ ...prev, [index]: score }));
-    setCorrectAnswers(prev => ({ ...prev, [index]: isCorrect }));
+  const questions = exerciseData.questions || [];
+
+  const handleInputChange = (id: string, value: string) => {
+    setUserInputs(prev => ({ ...prev, [id]: value }));
   };
 
-  const isAllAnswered = (exerciseData.speakingQuestions?.length || 0) > 0 && 
-    Object.keys(scores).length === (exerciseData.speakingQuestions?.length || 0);
+  const calculateScore = () => {
+    let correctCount = 0;
+    questions.forEach(q => {
+      const userAns = (userInputs[q.id] || "").trim().toLowerCase();
+      const expected = q.expectedAnswer.trim().toLowerCase();
+      if (userAns === expected) {
+        correctCount++;
+      }
+    });
+    // Scale to 10 points
+    return Math.round((correctCount / Math.max(questions.length, 1)) * 10 * 10) / 10;
+  };
 
-  const totalScore = isAllAnswered 
-    ? Math.round(Object.values(scores).reduce((a, b) => a + b, 0) / (exerciseData.speakingQuestions?.length || 1))
-    : null;
+  const handleSubmit = () => {
+    if (window.confirm("Bạn đã chắc chắn muốn nộp bài chưa?")) {
+      setIsSubmitted(true);
+      const score = calculateScore();
+      onComplete(score);
+    }
+  };
+
+  const getMsYenFeedback = (score: number) => {
+    if (score >= 9) return "Tuyệt vời quá con yêu! Con làm rất xuất sắc, cô Yến rất tự hào về con! 🌟";
+    if (score >= 7) return "Làm tốt lắm! Con hãy xem lại phần giải thích để rút kinh nghiệm những câu sai nhé, sắp hoàn hảo rồi! 👍";
+    if (score >= 5) return "Cố lên con! Lần sau con chú ý đọc kỹ đề hơn một chút là điểm sẽ cao ngay. Cô tin con làm được! 💪";
+    return "Không sao đâu con, bài này hơi khó một chút. Con hãy xem kỹ lại đáp án và giải thích nhé! ❤️";
+  };
+
+  // Group questions by type
+  const groupedQuestions = questions.reduce((acc, q) => {
+    if (!acc[q.type]) acc[q.type] = [];
+    acc[q.type].push(q);
+    return acc;
+  }, {} as Record<QuestionType, WrittenQuestion[]>);
+
+  const order: QuestionType[] = ['fill_blank', 'rearrange', 'find_mistake', 'complete_sentence'];
+
+  const score = isSubmitted ? calculateScore() : (savedScore || 0);
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 mt-8">
+    <div className="w-full max-w-5xl mx-auto space-y-8 mt-8">
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 sm:p-8 rounded-[2rem] shadow-xl text-white relative overflow-hidden">
-        <div className="absolute -right-10 -bottom-10 opacity-20"><Mic size={150} /></div>
+        <div className="absolute -right-10 -bottom-10 opacity-20"><Edit3 size={150} /></div>
         <h3 className="text-2xl sm:text-3xl font-black flex items-center gap-3 relative z-10">
-          Luyện Nói - Trả Lời Câu Hỏi
+          Bài Tập Thực Hành
         </h3>
         <p className="text-blue-100 mt-3 font-medium text-sm sm:text-base max-w-lg relative z-10">
-          Hãy đọc câu hỏi, suy nghĩ câu trả lời và bấm nút Micro để ghi âm câu trả lời của bạn nhé! Ms. Yến sẽ chấm điểm và nhận xét cho bạn.
+          Hoàn thành {questions.length} câu hỏi dưới đây. Sau khi nộp bài, Ms. Yến sẽ chấm điểm và nhận xét cho bạn.
         </p>
       </div>
 
-      <div className="space-y-4">
-        {exerciseData.speakingQuestions?.map((q, idx) => (
-          <SpeakingQuestionItem 
-            key={q.id || idx} 
-            question={q} 
-            index={idx} 
-            onResult={(s, c) => handleResult(idx, s, c)} 
-          />
-        ))}
-        {(!exerciseData.speakingQuestions || exerciseData.speakingQuestions.length === 0) && (
+      <div className="space-y-8">
+        {order.map((type) => {
+          const typeQuestions = groupedQuestions[type];
+          if (!typeQuestions || typeQuestions.length === 0) return null;
+
+          return (
+            <div key={type} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+              <h4 className="text-xl font-black text-brand-blue-dark mb-6 border-b-2 border-brand-blue/20 pb-3">
+                {TYPE_LABELS[type]}
+              </h4>
+              <div className="space-y-6">
+                {typeQuestions.map((q, idx) => {
+                  const userAns = (userInputs[q.id] || "").trim();
+                  const expected = q.expectedAnswer.trim();
+                  const isCorrect = userAns.toLowerCase() === expected.toLowerCase();
+
+                  return (
+                    <div key={q.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                      <div className="flex gap-3 mb-3">
+                        <span className="font-bold text-slate-400 shrink-0">Câu {idx + 1}.</span>
+                        <p className="font-medium text-slate-800 text-lg leading-relaxed">{q.questionText}</p>
+                      </div>
+                      
+                      {q.suggestedWords && (
+                        <div className="ml-10 mb-3 text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg w-fit border border-indigo-100">
+                          Gợi ý: {q.suggestedWords}
+                        </div>
+                      )}
+
+                      <div className="ml-10 relative">
+                        <input
+                          type="text"
+                          value={userInputs[q.id] || ""}
+                          onChange={(e) => handleInputChange(q.id, e.target.value)}
+                          disabled={isSubmitted}
+                          placeholder="Nhập câu trả lời của bạn..."
+                          className={\`w-full p-3 rounded-xl border-2 transition-colors \${
+                            isSubmitted 
+                              ? isCorrect 
+                                ? 'border-green-500 bg-green-50 text-green-800' 
+                                : 'border-red-400 bg-red-50 text-red-800'
+                              : 'border-slate-300 focus:border-brand-blue bg-white'
+                          }\`}
+                        />
+                        {isSubmitted && (
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                            {isCorrect ? <CheckCircle className="text-green-500" /> : <X className="text-red-500" />}
+                          </div>
+                        )}
+                      </div>
+
+                      {isSubmitted && !isCorrect && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="ml-10 mt-3 p-4 bg-white border border-red-200 rounded-xl shadow-sm">
+                          <p className="text-sm font-bold text-green-700 mb-1">✅ Đáp án đúng:</p>
+                          <p className="text-base font-bold text-slate-800 mb-3">{q.expectedAnswer}</p>
+                          
+                          <div className="flex gap-2 items-start mt-3 pt-3 border-t border-slate-100">
+                            <HelpCircle size={16} className="text-brand-blue shrink-0 mt-0.5" />
+                            <p className="text-sm text-slate-600 italic">
+                              <strong>Giải thích:</strong> {q.explanation}
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                      
+                      {isSubmitted && isCorrect && (
+                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="ml-10 mt-3">
+                            <div className="flex gap-2 items-start p-3 bg-green-50 rounded-lg border border-green-100">
+                              <HelpCircle size={16} className="text-green-600 shrink-0 mt-0.5" />
+                              <p className="text-sm text-green-800 italic">
+                                <strong>Giải thích:</strong> {q.explanation}
+                              </p>
+                            </div>
+                         </motion.div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+
+        {(!questions || questions.length === 0) && (
           <div className="p-8 text-center text-gray-500 bg-white rounded-2xl border-2 border-dashed border-gray-200">
             Không có câu hỏi nào trong bài học này.
           </div>
         )}
       </div>
 
-      {isAllAnswered && totalScore !== null && (
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-8 p-6 sm:p-10 bg-green-50 border-4 border-green-200 rounded-[2rem] text-center shadow-lg relative overflow-hidden">
-          <div className="absolute top-10 right-10 p-4 opacity-10"><Award size={150} className="text-green-500" /></div>
-          <h4 className="text-xl sm:text-2xl font-black text-green-800 mb-2 uppercase tracking-wide relative z-10">Bạn Đã Hoàn Thành Trả Lời Câu Hỏi!</h4>
-          <p className="text-gray-600 font-medium mb-6 relative z-10">Điểm trung bình kỹ năng nói của bạn</p>
-          <div className="text-5xl sm:text-7xl font-black text-green-600 mb-8 drop-shadow-sm relative z-10">{totalScore} <span className="text-3xl sm:text-4xl text-green-400">/ 10</span></div>
-          <button 
-            onClick={() => onComplete(totalScore)}
-            className="relative z-10 px-8 py-3.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black rounded-xl shadow-xl hover:shadow-2xl transition-all active:scale-95 text-lg"
+      {!isSubmitted && questions.length > 0 && (
+        <div className="flex justify-center mt-8 pb-10">
+          <button
+            onClick={handleSubmit}
+            className="px-10 py-4 bg-brand-blue hover:bg-brand-blue-dark text-white font-black text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all active:scale-95 uppercase tracking-wider"
           >
-            Lưu Điểm & Hoàn Thành
+            Nộp Bài & Chấm Điểm
           </button>
+        </div>
+      )}
+
+      {isSubmitted && (
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-8 mb-10 p-6 sm:p-10 bg-green-50 border-4 border-green-200 rounded-[2rem] shadow-lg relative overflow-hidden">
+          <div className="absolute top-10 right-10 p-4 opacity-10"><Award size={150} className="text-green-500" /></div>
+          <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+            <div className="flex-1 text-center md:text-left">
+              <h4 className="text-xl sm:text-2xl font-black text-green-800 mb-2 uppercase tracking-wide">Kết Quả Bài Làm</h4>
+              
+              <div className="flex items-start gap-3 p-4 bg-white rounded-xl border border-green-100 mt-4 shadow-sm inline-flex text-left">
+                <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center shrink-0 border-2 border-pink-200 text-2xl">
+                  👩‍🏫
+                </div>
+                <div>
+                  <h4 className="font-black text-pink-700 text-sm mb-1">Ms. Yến nhận xét:</h4>
+                  <p className="text-slate-700 font-medium text-sm leading-relaxed">
+                    {getMsYenFeedback(score)}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-3xl shadow-md border-2 border-green-100 text-center min-w-[200px]">
+              <p className="text-gray-500 font-bold mb-1 uppercase tracking-widest text-xs">Tổng điểm</p>
+              <div className="text-6xl font-black text-green-500 drop-shadow-sm">{score} <span className="text-3xl text-gray-300">/10</span></div>
+            </div>
+          </div>
         </motion.div>
       )}
     </div>
