@@ -53,6 +53,7 @@ export default function App() {
   const [showTranslation, setShowTranslation] = useState(false);
   const [generatedTopicName, setGeneratedTopicName] = useState<string | null>(null);
   const [exerciseData, setExerciseData] = useState<ExerciseData | null>(null);
+  const [homeworkData, setHomeworkData] = useState<any>(null); // from types/index.ts
   const [exerciseScore, setExerciseScore] = useState<number | null>(null);
 
   // UI state
@@ -106,7 +107,7 @@ export default function App() {
 
     try {
       // 1. Generate content
-      const { prompt, readingText: text, readingText2: text2, topicName, translation, translation2, vocabulary: vocab, overallGrammar: genGrammar, reading2Answers: genAnswers } = await generateContent(
+      const { prompt, readingText: text, readingText2: text2, topicName, translation, translation2, vocabulary: vocab, overallGrammar: genGrammar, reading2Answers: genAnswers, homework: hwData } = await generateContent(
         topic || (contentMode === "useInput" ? "Extract text from image" : "A scene based on the provided image"), 
         level, grammarTopic, contentMode, imagePreview || undefined
       );
@@ -119,6 +120,7 @@ export default function App() {
       setOverallGrammar(genGrammar || null);
       setReading2Answers(genAnswers || null);
       setGeneratedTopicName(topicName);
+      setHomeworkData(hwData || null);
       setShowTranslation(false);
       audioPlayer.setAudioUrl(null);
       audioPlayer2.setAudioUrl(null);
@@ -224,6 +226,7 @@ export default function App() {
     setGeneratedTopicName(lesson.topicName);
     setGeneratedPrompt(lesson.generatedPrompt);
     setExerciseData(lesson.exerciseData || null);
+    setHomeworkData((lesson as any).homeworkData || null);
     setExerciseScore(lesson.exerciseScore ?? null);
     setLevel(lesson.level);
     setShowTranslation(false);
@@ -553,11 +556,12 @@ export default function App() {
                       {/* Reading 2 Poster (Fill in the blanks) */}
                       {readingText2 && (
                         <div className="w-full max-w-4xl mx-auto mt-8">
-                           <ReadingTwo
+                          <ReadingTwo
                             readingText={readingText2}
-                            translationText={showTranslation ? translationText2 : null}
+                            translationText={translationText2}
                             vocabulary={vocabulary}
                             answers={reading2Answers}
+                            homeworkData={homeworkData}
                             topicName={generatedTopicName}
                             level={level}
                             showTranslation={showTranslation}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Volume2, CheckCircle, XCircle, Award } from 'lucide-react';
 import { EnglishLevel, VocabularyItem } from '../types';
+import { HomeworkSection } from './HomeworkSection';
 
 interface ReadingTwoProps {
   readingText: string;
@@ -16,6 +17,7 @@ interface ReadingTwoProps {
   isAudioLoading: boolean;
   setIsPlaying: (playing: boolean) => void;
   handlePlayAudio: () => Promise<void>;
+  homeworkData?: any;
 }
 
 export const ReadingTwo: React.FC<ReadingTwoProps> = ({
@@ -31,7 +33,8 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
   isPlaying,
   isAudioLoading,
   setIsPlaying,
-  handlePlayAudio
+  handlePlayAudio,
+  homeworkData,
 }) => {
   const [userInputs, setUserInputs] = useState<Record<number, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -199,6 +202,8 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
               Làm lại
             </button>
           </div>
+          
+          {homeworkData && <HomeworkSection data={homeworkData} />}
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ExerciseData, WrittenQuestion, QuestionType } from '../types';
-import { CheckCircle, X, Award, Edit3, HelpCircle } from 'lucide-react';
+import { CheckCircle, X, Award, FileText, Info } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface ExerciseSectionProps {
@@ -30,8 +30,8 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
     let correctCount = 0;
     questions.forEach(q => {
       const userAns = (userInputs[q.id] || "").trim().toLowerCase();
-      const expected = q.expectedAnswer.trim().toLowerCase();
-      if (userAns === expected) {
+      const expected = (q.expectedAnswer || "").trim().toLowerCase();
+      if (userAns === expected && expected !== "") {
         correctCount++;
       }
     });
@@ -68,7 +68,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 mt-8">
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 sm:p-8 rounded-[2rem] shadow-xl text-white relative overflow-hidden">
-        <div className="absolute -right-10 -bottom-10 opacity-20"><Edit3 size={150} /></div>
+        <div className="absolute -right-10 -bottom-10 opacity-20"><FileText size={150} /></div>
         <h3 className="text-2xl sm:text-3xl font-black flex items-center gap-3 relative z-10">
           Bài Tập Thực Hành
         </h3>
@@ -90,14 +90,14 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
               <div className="space-y-6">
                 {typeQuestions.map((q, idx) => {
                   const userAns = (userInputs[q.id] || "").trim();
-                  const expected = q.expectedAnswer.trim();
+                  const expected = (q.expectedAnswer || "").trim();
                   const isCorrect = userAns.toLowerCase() === expected.toLowerCase();
 
                   return (
-                    <div key={q.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div key={q.id || idx} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                       <div className="flex gap-3 mb-3">
                         <span className="font-bold text-slate-400 shrink-0">Câu {idx + 1}.</span>
-                        <p className="font-medium text-slate-800 text-lg leading-relaxed">{q.questionText}</p>
+                        <p className="font-medium text-slate-800 text-lg leading-relaxed">{q.questionText || ""}</p>
                       </div>
                       
                       {q.suggestedWords && (
@@ -131,12 +131,12 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
                       {isSubmitted && !isCorrect && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="ml-10 mt-3 p-4 bg-white border border-red-200 rounded-xl shadow-sm">
                           <p className="text-sm font-bold text-green-700 mb-1">✅ Đáp án đúng:</p>
-                          <p className="text-base font-bold text-slate-800 mb-3">{q.expectedAnswer}</p>
+                          <p className="text-base font-bold text-slate-800 mb-3">{q.expectedAnswer || "Không có đáp án"}</p>
                           
                           <div className="flex gap-2 items-start mt-3 pt-3 border-t border-slate-100">
-                            <HelpCircle size={16} className="text-brand-blue shrink-0 mt-0.5" />
+                            <Info size={16} className="text-brand-blue shrink-0 mt-0.5" />
                             <p className="text-sm text-slate-600 italic">
-                              <strong>Giải thích:</strong> {q.explanation}
+                              <strong>Giải thích:</strong> {q.explanation || "Không có giải thích"}
                             </p>
                           </div>
                         </motion.div>
@@ -145,9 +145,9 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
                       {isSubmitted && isCorrect && (
                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="ml-10 mt-3">
                             <div className="flex gap-2 items-start p-3 bg-green-50 rounded-lg border border-green-100">
-                              <HelpCircle size={16} className="text-green-600 shrink-0 mt-0.5" />
+                              <Info size={16} className="text-green-600 shrink-0 mt-0.5" />
                               <p className="text-sm text-green-800 italic">
-                                <strong>Giải thích:</strong> {q.explanation}
+                                <strong>Giải thích:</strong> {q.explanation || "Không có giải thích"}
                               </p>
                             </div>
                          </motion.div>

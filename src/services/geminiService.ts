@@ -186,6 +186,7 @@ export interface ContentGenerationResult {
   readingText2?: string;
   translation2?: string;
   reading2Answers?: string[];
+  homework?: any;
 }
 
 export type EnglishLevel = "Starters" | "Movers" | "Flyers" | "A1" | "A2" | "B1" | "B2";
@@ -305,6 +306,13 @@ export const generateContent = async (
      - "emoji": a relevant emoji
      - "example": a short example sentence in English using the word.
   9. "overallGrammar": Tóm tắt ngữ pháp trọng tâm dưới dạng Markdown list phân cấp (dùng gạch đầu dòng -, thò thụt đầu dòng) để có thể hiển thị như một mindmap. Bao gồm: giải thích ngắn gọn dễ hiểu, công thức (nếu có), ví dụ cụ thể và mẹo ghi nhớ nhanh. Bắt buộc dùng tiếng Việt.
+  10. "homework": Generate homework exercises related to the topic and grammar. Output exactly this JSON structure:
+      "matching": { "items": [{"term": "english word", "definition": "vietnamese definition"}] } (5 items)
+      "fillBlanks": [{"sentence": "sentence with ___", "options": ["opt1", "opt2", "opt3"], "answer": "correct option"}] (5 items)
+      "rewrites": [{"originalSentence": "sentence", "hint": "hint (e.g. Begin with...)", "answer": "rewritten sentence"}] (5 items)
+      "mistakes": [{"sentence": "sentence with one mistake", "mistake": "the wrong word", "correction": "the correct word"}] (5 items)
+      "questions": [{"question": "reading comprehension question", "suggestedAnswer": "answer"}] (3 items)
+      "essay": {"topic": "essay topic", "guidance": "guidance/hints in vietnamese"}
   
   Output the result strictly in JSON format:
   {
@@ -318,7 +326,15 @@ export const generateContent = async (
     "overallGrammar": "string",
     "vocabulary": [
       { "word": "string", "ipa": "string", "meaning": "string", "emoji": "string", "example": "string" }
-    ]
+    ],
+    "homework": {
+      "matching": { "items": [] },
+      "fillBlanks": [],
+      "rewrites": [],
+      "mistakes": [],
+      "questions": [],
+      "essay": { "topic": "", "guidance": "" }
+    }
   }
   Note: Ensure exactly 30 vocabulary items. NEVER use the * character anywhere.`;
 
@@ -337,7 +353,7 @@ export const generateContent = async (
     config: { 
       systemInstruction,
       responseMimeType: "application/json",
-      maxOutputTokens: 16384,
+      maxOutputTokens: 8192,
     },
   });
 
@@ -365,6 +381,7 @@ export const generateContent = async (
       vocabulary: result.vocabulary || [],
       overallGrammar: result.overallGrammar || "",
       reading2Answers: result.reading2Answers || [],
+      homework: result.homework || null,
     };
   } catch (e) {
     console.error("Failed to parse JSON response:", response.text, e);
@@ -838,7 +855,7 @@ Output strictly a JSON object matching this schema:
       systemInstruction,
       responseMimeType: "application/json",
       temperature: 0.2, // keep it deterministic
-      maxOutputTokens: 16384
+      maxOutputTokens: 8192
     },
   });
 

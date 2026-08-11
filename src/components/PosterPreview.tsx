@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { FileText, Volume2, Pause, RefreshCw, Target, Play, BookOpen, Lightbulb, Zap } from 'lucide-react';
+import { FileText, Volume2, Pause, RefreshCw, Target, Play, BookOpen, Lightbulb, Zap, Mic, MicOff, CheckCircle2 } from 'lucide-react';
 import { VocabularyItem, EnglishLevel } from '../types';
 
 interface PosterPreviewProps {
@@ -23,6 +23,148 @@ interface PosterPreviewProps {
   posterRef: React.RefObject<HTMLDivElement | null>;
   grammarSummary?: string | null;
 }
+
+// ====== READING PRACTICE SECTION ======
+const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalText }) => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [score, setScore] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+
+  const calculateScore = (spokenText: string, originalText: string) => {
+    const normalize = (text: string) => text.toLowerCase().replace(/[^\w\s]/gi, '').split(/\s+/).filter(Boolean);
+    const spokenWords = normalize(spokenText);
+    const originalWords = normalize(originalText);
+    
+    if (originalWords.length === 0) return { score: 0, feedback: 'Văn bản gốc trống.' };
+    if (spokenWords.length === 0) return { score: 0, feedback: 'Bạn chưa đọc từ nào, hãy nhấn thu âm và đọc to rõ ràng nhé!' };
+
+    let matchCount = 0;
+    const spokenFreq: Record<string, number> = {};
+    spokenWords.forEach(w => spokenFreq[w] = (spokenFreq[w] || 0) + 1);
+    
+    originalWords.forEach(w => {
+      if (spokenFreq[w] > 0) {
+        matchCount++;
+        spokenFreq[w]--;
+      }
+    });
+
+    let rawScore = (matchCount / originalWords.length) * 10;
+    
+    const lengthRatio = spokenWords.length / originalWords.length;
+    if (lengthRatio < 0.5) rawScore *= (lengthRatio * 1.5); 
+    
+    const finalScore = Math.min(10, Math.max(1, Math.round(rawScore * 10) / 10));
+    
+    let fb = '';
+    if (finalScore >= 9) fb = 'Xuất sắc! Bạn phát âm rất chuẩn và trôi chảy! 🎉';
+    else if (finalScore >= 7) fb = 'Rất tốt! Bạn đọc khá trôi chảy, cố gắng phát âm rõ hơn một vài từ nhé! 👍';
+    else if (finalScore >= 5) fb = 'Khá tốt! Bạn hãy nghe lại bài mẫu và luyện tập thêm để tự tin hơn. 💪';
+    else fb = 'Đừng nản lòng! Hãy chia nhỏ bài đọc ra và luyện tập từng câu một nhé. 🌱';
+    
+    return { score: finalScore, feedback: fb };
+  };
+
+  const startRecording = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng sử dụng Chrome.');
+      return;
+    }
+    
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+      setTranscript('');
+      setScore(null);
+      setFeedback(null);
+    };
+
+    recognition.onresult = (event: any) => {
+      let finalTranscript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        finalTranscript += event.results[i][0].transcript;
+      }
+      setTranscript(finalTranscript);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error(event.error);
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isRecording && transcript && originalText) {
+      const result = calculateScore(transcript, originalText);
+      setScore(result.score);
+      setFeedback(result.feedback);
+    }
+  }, [isRecording, transcript, originalText]);
+
+  return (
+    <div className="mt-6 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-col items-center" data-html2canvas-ignore>
+      <div className="text-center mb-3">
+        <h4 className="text-sm font-bold text-indigo-800 uppercase tracking-wide">Luyện Đọc</h4>
+        <p className="text-xs text-indigo-600/70 mt-1">Bấm vào micro và đọc to bài văn trên nhé!</p>
+      </div>
+
+      <button
+        onClick={isRecording ? stopRecording : startRecording}
+        className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-md ${
+          isRecording 
+            ? 'bg-rose-500 text-white animate-pulse shadow-rose-200' 
+            : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:scale-105 shadow-indigo-200'
+        }`}
+      >
+        {isRecording ? <MicOff size={24} /> : <Mic size={24} />}
+      </button>
+
+      {isRecording && (
+        <div className="mt-3 text-xs text-rose-500 font-medium animate-pulse">
+          Đang thu âm... Hãy đọc bài đi nào!
+        </div>
+      )}
+
+      {transcript && !isRecording && (
+        <div className="mt-4 w-full bg-white p-3 rounded-xl border border-indigo-100 shadow-sm">
+          <p className="text-xs text-slate-500 mb-1 italic">Văn bản nhận diện được:</p>
+          <p className="text-sm text-slate-700 italic">"{transcript}"</p>
+        </div>
+      )}
+
+      {score !== null && !isRecording && (
+        <div className="mt-4 w-full bg-white p-4 rounded-xl border border-emerald-100 shadow-sm flex flex-col items-center text-center">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle2 className="text-emerald-500" size={24} />
+            <h4 className="text-lg font-black text-emerald-600">ĐIỂM SỐ: {score}/10</h4>
+          </div>
+          <p className="text-sm font-medium text-slate-700">{feedback}</p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5];
 
@@ -351,6 +493,28 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
   isDownloading, onDownloadPoster, onToggleTranslation,
   posterRef, grammarSummary
 }) => {
+  const [isVocabPlaying, setIsVocabPlaying] = useState(false);
+
+  const handlePlayVocab = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isVocabPlaying || window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      setIsVocabPlaying(false);
+    } else if (vocabulary && vocabulary.length > 0) {
+      setIsVocabPlaying(true);
+      window.speechSynthesis.cancel(); // Clear any existing speech
+      vocabulary.forEach((item, index) => {
+        const utterance = new SpeechSynthesisUtterance(item.word);
+        utterance.lang = 'en-US';
+        if (index === vocabulary.length - 1) {
+          utterance.onend = () => setIsVocabPlaying(false);
+          utterance.onerror = () => setIsVocabPlaying(false);
+        }
+        window.speechSynthesis.speak(utterance);
+      });
+    }
+  }, [vocabulary, isVocabPlaying]);
+
   return (
     <div
       ref={posterRef}
@@ -379,16 +543,15 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
           </div>
           <div className="flex items-center gap-2" data-html2canvas-ignore>
             <button
-              onClick={(e) => { e.stopPropagation(); handlePlayAudio(); }}
-              disabled={isAudioLoading && !audioUrl && !isBrowserTTS}
-              className="p-2 rounded-full transition-all"
+              onClick={handlePlayVocab}
+              className="p-2 rounded-full transition-all hover:bg-blue-50"
               style={{
-                backgroundColor: isPlaying ? '#DBEAFE' : isAudioLoading ? '#f3f4f6' : '#f9fafb',
-                color: isPlaying ? '#1D4ED8' : isAudioLoading ? '#d1d5db' : '#9ca3af'
+                backgroundColor: isVocabPlaying ? '#DBEAFE' : '#f9fafb',
+                color: isVocabPlaying ? '#1D4ED8' : '#9ca3af'
               }}
-              title={isPlaying ? "Dừng" : "Nghe bài đọc"}
+              title={isVocabPlaying ? "Dừng" : "Nghe từ vựng"}
             >
-              {isAudioLoading && !audioUrl && !isBrowserTTS ? <RefreshCw size={18} className="animate-spin" /> : isPlaying ? <Pause size={18} /> : <Volume2 size={18} />}
+              {isVocabPlaying ? <Pause size={18} /> : <Volume2 size={18} />}
             </button>
           </div>
         </div>
@@ -463,6 +626,7 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
             >
               {readingText ? renderMarkdown(readingText) : null}
             </div>
+            {readingText && <ReadingPractice originalText={readingText} />}
           </div>
 
           {showTranslation && translationText && (
