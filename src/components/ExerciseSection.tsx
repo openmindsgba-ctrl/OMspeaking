@@ -113,13 +113,13 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
                           onChange={(e) => handleInputChange(q.id, e.target.value)}
                           disabled={isSubmitted}
                           placeholder="Nhập câu trả lời của bạn..."
-                          className={\`w-full p-3 rounded-xl border-2 transition-colors \${
+                          className={`w-full p-3 rounded-xl border-2 transition-colors ${
                             isSubmitted 
                               ? isCorrect 
                                 ? 'border-green-500 bg-green-50 text-green-800' 
                                 : 'border-red-400 bg-red-50 text-red-800'
                               : 'border-slate-300 focus:border-brand-blue bg-white'
-                          }\`}
+                          }`}
                         />
                         {isSubmitted && (
                           <div className="absolute right-4 top-1/2 -translate-y-1/2">
