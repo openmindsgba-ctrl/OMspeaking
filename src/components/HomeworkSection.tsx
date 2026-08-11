@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HomeworkData } from '../types';
-import { CheckCircle2, XCircle, RefreshCw, PenTool, BookOpen, Target, Search, MessageSquare, BookOpenCheck } from 'lucide-react';
+import { CheckCircle, XCircle, RefreshCw, Pen, BookOpen, Target, Search, MessageSquare } from 'lucide-react';
 
 interface HomeworkSectionProps {
   data: HomeworkData;
@@ -26,7 +26,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
     <div className="mt-8 space-y-6 bg-slate-50 p-4 sm:p-6 rounded-2xl border-2 border-slate-200">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h3 className="text-xl font-black text-indigo-800 flex items-center gap-2">
-          <BookOpenCheck size={24} className="text-indigo-600" />
+          <BookOpen size={24} className="text-indigo-600" />
           Bài Tập Về Nhà
         </h3>
         <button
@@ -72,7 +72,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
                   {showAnswers && (
                     <div className="flex items-center justify-center w-8">
                       {isCorrect(`match-${idx}`, String(idx + 1)) ? (
-                        <CheckCircle2 size={20} className="text-green-500" />
+                        <CheckCircle size={20} className="text-green-500" />
                       ) : (
                         <div className="text-xs font-black text-rose-500 flex flex-col items-center">
                           <XCircle size={16} />
@@ -92,7 +92,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
       {data.fillBlanks && data.fillBlanks.length > 0 && (
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
           <h4 className="font-bold text-slate-700 flex items-center gap-2 mb-3">
-            <PenTool size={18} className="text-blue-500" />
+            <Pen size={18} className="text-blue-500" />
             2. Điền từ còn thiếu vào chỗ trống
           </h4>
           <div className="space-y-4">
@@ -114,7 +114,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
                           {showAnswers && (
                             <span className="absolute -right-6 top-1/2 -translate-y-1/2">
                               {isCorrect(`fill-${idx}`, q.answer) ? (
-                                <CheckCircle2 size={16} className="text-green-500" />
+                                <CheckCircle size={16} className="text-green-500" />
                               ) : (
                                 <XCircle size={16} className="text-rose-500" />
                               )}

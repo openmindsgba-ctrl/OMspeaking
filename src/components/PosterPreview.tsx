@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { FileText, Volume2, Pause, RefreshCw, Target, Play, BookOpen, Lightbulb, Zap, Mic, MicOff, CheckCircle2 } from 'lucide-react';
+import { FileText, Volume2, Pause, RefreshCw, Target, Play, BookOpen, Lightbulb, Zap, Mic, MicOff, CheckCircle } from 'lucide-react';
 import { VocabularyItem, EnglishLevel } from '../types';
 
 interface PosterPreviewProps {
@@ -156,7 +156,7 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
       {score !== null && !isRecording && (
         <div className="mt-4 w-full bg-white p-4 rounded-xl border border-emerald-100 shadow-sm flex flex-col items-center text-center">
           <div className="flex items-center gap-2 mb-2">
-            <CheckCircle2 className="text-emerald-500" size={24} />
+            <CheckCircle className="text-emerald-500" size={24} />
             <h4 className="text-lg font-black text-emerald-600">ĐIỂM SỐ: {score}/10</h4>
           </div>
           <p className="text-sm font-medium text-slate-700">{feedback}</p>

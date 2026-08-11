@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Zap } from 'lucide-react';
+import { CheckCircle, Zap } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 
 interface HeaderProps {
@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({ apiKey, onOpenApiKeyModal }) => 
         </button>
 
         <div className="hidden md:flex items-center gap-4 text-xs font-bold text-white/80">
-          <span className="flex items-center gap-1.5 bg-brand-blue-dark/40 px-3 py-1.5 rounded-full"><CheckCircle2 size={16} className="text-brand-gold" /> Learn English to go further.</span>
+          <span className="flex items-center gap-1.5 bg-brand-blue-dark/40 px-3 py-1.5 rounded-full"><CheckCircle size={16} className="text-brand-gold" /> Learn English to go further.</span>
         </div>
       </div>
     </div>
