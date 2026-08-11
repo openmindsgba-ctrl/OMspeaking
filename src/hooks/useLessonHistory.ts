@@ -17,6 +17,7 @@ export interface LessonRecord {
   score?: number; // speaking score
   exerciseData?: ExerciseData | null;
   exerciseScore?: number | null;
+  comprehensionQuestions?: { question: string, suggestedAnswer: string }[];
   createdAt: number; // timestamp
 }
 

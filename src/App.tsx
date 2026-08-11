@@ -48,8 +48,9 @@ export default function App() {
   const [translationText, setTranslationText] = useState<string | null>(null);
   const [translationText2, setTranslationText2] = useState<string | null>(null);
   const [overallGrammar, setOverallGrammar] = useState<string | null>(null);
-  const [reading2Answers, setReading2Answers] = useState<string[] | null>(null);
+  const [reading2Answers, setReading2Answers] = useState<string[] | undefined>(undefined);
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
+  const [comprehensionQuestions, setComprehensionQuestions] = useState<{question: string, suggestedAnswer: string}[] | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
   const [generatedTopicName, setGeneratedTopicName] = useState<string | null>(null);
   const [exerciseData, setExerciseData] = useState<ExerciseData | null>(null);
@@ -107,20 +108,23 @@ export default function App() {
 
     try {
       // 1. Generate content
-      const { prompt, readingText: text, readingText2: text2, topicName, translation, translation2, vocabulary: vocab, overallGrammar: genGrammar, reading2Answers: genAnswers, homework: hwData } = await generateContent(
+      const result = await generateContent(
         topic || (contentMode === "useInput" ? "Extract text from image" : "A scene based on the provided image"), 
         level, grammarTopic, contentMode, imagePreview || undefined
       );
-      setGeneratedPrompt(prompt);
-      setReadingText(text);
-      setReadingText2(text2 || null);
-      setTranslationText(translation);
-      setTranslationText2(translation2 || null);
-      setVocabulary(vocab);
-      setOverallGrammar(genGrammar || null);
-      setReading2Answers(genAnswers || null);
-      setGeneratedTopicName(topicName);
-      setHomeworkData(hwData || null);
+      
+      setGeneratedPrompt(result.prompt);
+      setReadingText(result.readingText);
+      setReadingText2(result.readingText2 || null);
+      setTranslationText(result.translation);
+      setTranslationText2(result.translation2 || null);
+      setVocabulary(result.vocabulary);
+      setOverallGrammar(result.overallGrammar || null);
+      setReading2Answers(result.reading2Answers || undefined);
+      setGeneratedTopicName(result.topicName);
+      setHomeworkData(result.homework || null);
+      setComprehensionQuestions(result.comprehensionQuestions || null);
+      
       setShowTranslation(false);
       audioPlayer.setAudioUrl(null);
       audioPlayer2.setAudioUrl(null);
@@ -128,7 +132,7 @@ export default function App() {
 
       // 2. Generate exercises (with a short delay to avoid quota limits on free-tier keys)
       await new Promise(r => setTimeout(r, 2000));
-      const exData = text ? await generateExercise(text, level).catch(err => {
+      const exData = result.readingText ? await generateExercise(result.readingText, level).catch(err => {
         console.error("Exercise generation failed", err);
         return null;
       }) : null;
@@ -140,14 +144,14 @@ export default function App() {
       audioPlayer.setIsAudioLoading(true);
       audioPlayer2.setIsAudioLoading(true);
       
-      const audioUrl = text ? await generateAudio(text, level).catch(err => {
+      const audioUrl = result.readingText ? await generateAudio(result.readingText, level).catch(err => {
         console.error("Background audio generation failed", err);
         const msg = err?.message || "";
         if (msg === "QUOTA_EXCEEDED" || msg === "INVALID_KEY") throw err;
         return null;
       }) : null;
       
-      const audioUrl2Result = text2 ? await generateAudio(text2, level).catch(err => {
+      const audioUrl2Result = result.readingText2 ? await generateAudio(result.readingText2, level).catch(err => {
         console.error("Background audio generation 2 failed", err);
         return null;
       }) : null;
@@ -160,18 +164,19 @@ export default function App() {
 
       // 3. Save to lesson history
       const lessonId = lessonHistory.addLesson({
-        topicName: topicName,
+        topicName: result.topicName,
         level,
-        readingText: text,
-        readingText2: text2 || undefined,
-        translationText: translation,
-        translationText2: translation2 || undefined,
-        vocabulary: vocab,
-        overallGrammar: genGrammar,
-        reading2Answers: genAnswers,
+        readingText: result.readingText,
+        readingText2: result.readingText2 || undefined,
+        translationText: result.translation,
+        translationText2: result.translation2 || undefined,
+        vocabulary: result.vocabulary,
+        overallGrammar: result.overallGrammar,
+        reading2Answers: result.reading2Answers,
         generatedImage: null,
-        generatedPrompt: prompt,
+        generatedPrompt: result.prompt,
         exerciseData: exData,
+        comprehensionQuestions: result.comprehensionQuestions,
       });
       setCurrentLessonId(lessonId);
 
@@ -222,12 +227,13 @@ export default function App() {
     setTranslationText2(lesson.translationText2 || null);
     setVocabulary(lesson.vocabulary || []);
     setOverallGrammar(lesson.overallGrammar || null);
-    setReading2Answers(lesson.reading2Answers || null);
+    setReading2Answers(lesson.reading2Answers || undefined);
     setGeneratedTopicName(lesson.topicName);
     setGeneratedPrompt(lesson.generatedPrompt);
     setExerciseData(lesson.exerciseData || null);
     setHomeworkData((lesson as any).homeworkData || null);
     setExerciseScore(lesson.exerciseScore ?? null);
+    setComprehensionQuestions(lesson.comprehensionQuestions || null);
     setLevel(lesson.level);
     setShowTranslation(false);
     setCurrentLessonId(lesson.id);
@@ -497,6 +503,7 @@ export default function App() {
                         generatedTopicName={generatedTopicName} topic={topic} level={level}
                         showTranslation={showTranslation}
                         grammarSummary={overallGrammar}
+                        comprehensionQuestions={comprehensionQuestions}
                         audioUrl={audioPlayer.audioUrl} audioRef={audioPlayer.audioRef}
                         isPlaying={audioPlayer.isPlaying} isAudioLoading={audioPlayer.isAudioLoading}
                         isBrowserTTS={audioPlayer.isBrowserTTS}
@@ -510,9 +517,33 @@ export default function App() {
 
 
 
+                      {/* Exercise Section moved to below Reading 2 */}
+
+                      {/* Reading 2 Poster (Fill in the blanks) */}
+                      {readingText2 && (
+                        <div className="w-full max-w-4xl mx-auto mt-8">
+                          <ReadingTwo
+                            readingText={readingText2}
+                            translationText={translationText2}
+                            vocabulary={vocabulary}
+                            answers={reading2Answers}
+                            homeworkData={homeworkData}
+                            topicName={generatedTopicName}
+                            level={level}
+                            showTranslation={showTranslation}
+                            audioUrl={audioPlayer2.audioUrl}
+                            audioRef={audioPlayer2.audioRef}
+                            isPlaying={audioPlayer2.isPlaying}
+                            isAudioLoading={audioPlayer2.isAudioLoading}
+                            setIsPlaying={audioPlayer2.setIsPlaying}
+                            handlePlayAudio={audioPlayer2.handlePlayAudio}
+                          />
+                        </div>
+                      )}
+
                       {/* Exercise Section */}
                       {!exerciseData ? (
-                        <div className="w-full max-w-[800px] p-6 bg-amber-50/75 rounded-2xl border-2 border-dashed border-amber-200 flex flex-col items-center justify-center text-center space-y-3">
+                        <div className="w-full max-w-[800px] p-6 bg-amber-50/75 rounded-2xl border-2 border-dashed border-amber-200 flex flex-col items-center justify-center text-center space-y-3 mt-8">
                           <span className="text-2xl">📝</span>
                           <div>
                             <h4 className="font-bold text-amber-900 text-sm sm:text-base">Bài học chưa có phần bài tập</h4>
@@ -546,31 +577,11 @@ export default function App() {
                           </button>
                         </div>
                       ) : (
-                        <ExerciseSection 
-                          exerciseData={exerciseData} 
-                          savedScore={exerciseScore} 
-                          onComplete={handleExerciseComplete} 
-                        />
-                      )}
-
-                      {/* Reading 2 Poster (Fill in the blanks) */}
-                      {readingText2 && (
-                        <div className="w-full max-w-4xl mx-auto mt-8">
-                          <ReadingTwo
-                            readingText={readingText2}
-                            translationText={translationText2}
-                            vocabulary={vocabulary}
-                            answers={reading2Answers}
-                            homeworkData={homeworkData}
-                            topicName={generatedTopicName}
-                            level={level}
-                            showTranslation={showTranslation}
-                            audioUrl={audioPlayer2.audioUrl}
-                            audioRef={audioPlayer2.audioRef}
-                            isPlaying={audioPlayer2.isPlaying}
-                            isAudioLoading={audioPlayer2.isAudioLoading}
-                            setIsPlaying={audioPlayer2.setIsPlaying}
-                            handlePlayAudio={audioPlayer2.handlePlayAudio}
+                        <div className="mt-8">
+                          <ExerciseSection 
+                            exerciseData={exerciseData} 
+                            savedScore={exerciseScore} 
+                            onComplete={handleExerciseComplete} 
                           />
                         </div>
                       )}

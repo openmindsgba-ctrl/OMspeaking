@@ -187,6 +187,7 @@ export interface ContentGenerationResult {
   translation2?: string;
   reading2Answers?: string[];
   homework?: any;
+  comprehensionQuestions?: { question: string, suggestedAnswer: string }[];
 }
 
 export type EnglishLevel = "Starters" | "Movers" | "Flyers" | "A1" | "A2" | "B1" | "B2";
@@ -275,11 +276,26 @@ export const generateContent = async (
   userName?: string,
   userAge?: string
 ): Promise<ContentGenerationResult> => {
+  const getLevelRequirements = (lvl: EnglishLevel) => {
+    switch (lvl) {
+      case "Starters": return { vocabCount: 6, readingLength: "50-80 words" };
+      case "Movers": return { vocabCount: 8, readingLength: "80-120 words" };
+      case "Flyers": return { vocabCount: 10, readingLength: "120-150 words" };
+      case "A1": return { vocabCount: 12, readingLength: "150-200 words" };
+      case "A2": return { vocabCount: 15, readingLength: "200-250 words" };
+      case "B1": return { vocabCount: 18, readingLength: "250-350 words" };
+      case "B2": return { vocabCount: 20, readingLength: "350-500 words" };
+      default: return { vocabCount: 12, readingLength: "150-200 words" };
+    }
+  };
+
+  const { vocabCount, readingLength } = getLevelRequirements(level);
+
   const useInputInstructions = mode === 'useInput' 
     ? `
   ⚠️ ABSOLUTE RULE FOR 'useInput' MODE:
   - Copy the user's input text EXACTLY into "readingText" (Word for word).
-  - Use the exact same input for "readingText2" but replace all instances of the 30 vocabulary words with numbered blanks like "(1)", "(2)", "(3)".
+  - Use the exact same input for "readingText2" but replace all instances of the ${vocabCount} vocabulary words with numbered blanks like "(1)", "(2)", "(3)".
   - The "translation" and "translation2" must translate the FULL texts.
   ` 
     : '';
@@ -293,20 +309,20 @@ export const generateContent = async (
   CRITICAL RULE: NEVER use asterisks (*) anywhere in your output. Do NOT use markdown bold (**word**) or any * character at all.
   Your task is to generate:
   1. An image generation prompt for a highly realistic, clear educational illustration matching the topic and grammar. Include quality keywords: "photorealistic, 8k UHD resolution, vivid colors".
-  2. "readingText": A reading passage appropriate for level ${level}. MUST contain ALL 30 vocabulary words you generate. Mark vocabulary words by wrapping them in square brackets like [word]. Incorporate the grammar topic: "${grammarTopic}". ${mode === 'useInput' ? "USE EXACT USER TEXT." : generateModeInstructions}
-  3. "readingText2": A SECOND reading passage with DIFFERENT content but using the SAME 30 vocabulary words and grammar topic. In this text, replace every occurrence of the 30 vocabulary words with numbered blanks exactly like "(1)", "(2)", "(3)" etc. up to the total number of blanks.
+  2. "readingText": A reading passage appropriate for level ${level}. MUST contain ALL ${vocabCount} vocabulary words you generate. The length of this reading passage MUST be approximately ${readingLength}. Mark vocabulary words by wrapping them in square brackets like [word]. Incorporate the grammar topic: "${grammarTopic}". ${mode === 'useInput' ? "USE EXACT USER TEXT." : generateModeInstructions}
+  3. "readingText2": A SECOND reading passage with DIFFERENT content but using the SAME ${vocabCount} vocabulary words and grammar topic. The length MUST be approximately ${readingLength}. In this text, replace every occurrence of the ${vocabCount} vocabulary words with numbered blanks exactly like "(1)", "(2)", "(3)" etc. up to the total number of blanks.
   4. "reading2Answers": An array of strings containing the correct words for each numbered blank in readingText2, in order.
   5. A short title/topic name (max 5 words).
   6. "translation": Vietnamese translation of readingText.
   7. "translation2": Vietnamese translation of readingText2.
-  8. "vocabulary": A list of EXACTLY 30 key vocabulary words. For each word include:
+  8. "vocabulary": A list of EXACTLY ${vocabCount} key vocabulary words. For each word include:
      - "word": the English word
      - "ipa": phonetic transcription
      - "meaning": brief Vietnamese meaning
      - "emoji": a relevant emoji
-     - "example": a short example sentence in English using the word.
   9. "overallGrammar": Tóm tắt ngữ pháp trọng tâm dưới dạng Markdown list phân cấp (dùng gạch đầu dòng -, thò thụt đầu dòng) để có thể hiển thị như một mindmap. Bao gồm: giải thích ngắn gọn dễ hiểu, công thức (nếu có), ví dụ cụ thể và mẹo ghi nhớ nhanh. Bắt buộc dùng tiếng Việt.
-  10. "homework": Generate homework exercises related to the topic and grammar. Output exactly this JSON structure:
+  10. "comprehensionQuestions": Sinh ra chính xác 10 câu hỏi đọc hiểu (reading comprehension) dựa trên bài đọc 1, kèm theo câu trả lời gợi ý cho từng câu. Output dạng mảng các object: [{"question": "...", "suggestedAnswer": "..."}].
+  11. "homework": Generate homework exercises related to the topic and grammar. Output exactly this JSON structure:
       "matching": { "items": [{"term": "english word", "definition": "vietnamese definition"}] } (5 items)
       "fillBlanks": [{"sentence": "sentence with ___", "options": ["opt1", "opt2", "opt3"], "answer": "correct option"}] (5 items)
       "rewrites": [{"originalSentence": "sentence", "hint": "hint (e.g. Begin with...)", "answer": "rewritten sentence"}] (5 items)
@@ -324,8 +340,11 @@ export const generateContent = async (
     "translation": "string",
     "translation2": "string",
     "overallGrammar": "string",
+    "comprehensionQuestions": [
+      { "question": "string", "suggestedAnswer": "string" }
+    ],
     "vocabulary": [
-      { "word": "string", "ipa": "string", "meaning": "string", "emoji": "string", "example": "string" }
+      { "word": "string", "ipa": "string", "meaning": "string", "emoji": "string" }
     ],
     "homework": {
       "matching": { "items": [] },
@@ -336,7 +355,7 @@ export const generateContent = async (
       "essay": { "topic": "", "guidance": "" }
     }
   }
-  Note: Ensure exactly 30 vocabulary items. NEVER use the * character anywhere.`;
+  Note: Ensure exactly ${vocabCount} vocabulary items and adherence to the ${readingLength} reading length requirement. NEVER use the * character anywhere.`;
 
   const parts: any[] = [{ text: `Topic/Content: ${input}\nGrammar Topic: ${grammarTopic}\nLevel: ${level}\nMode: ${mode}` }];
   if (imageData) {
@@ -684,23 +703,22 @@ Bạn nghe audio thu âm từ micro trình duyệt (có thể là giọng trẻ 
 
 BƯỚC 1: NGHE VÀ NHẬN DIỆN
 - Cố gắng tối đa nhận diện từng câu, từng từ trong audio.
-- KHÔNG được đánh "isComplete: false" chỉ vì audio khó nghe hoặc chất lượng thấp.
-- Nếu nghe được phần lớn nội dung (≥70%) → coi như đã đọc đủ, đánh "isComplete": true.
+- Lưu ý rằng học sinh có thể đọc chậm hoặc vấp, nhưng hãy cẩn thận lắng nghe.
 
-BƯỚC 2: KIỂM TRA ĐỘ HOÀN THÀNH
-- Đọc được ≥70% nội dung bài gốc → "isComplete": true → chấm điểm.
-- Bỏ sót >30% nội dung → "isComplete": false, "score": 0.
+BƯỚC 2: KIỂM TRA ĐỘ HOÀN THÀNH VÀ NỘI DUNG (QUAN TRỌNG)
+- Học sinh BẮT BUỘC phải đọc hết bài và đúng nội dung bài gốc mới được chấm điểm.
+- Nếu học sinh bỏ dở giữa chừng (chưa đọc hết bài), đọc thiếu đoạn quan trọng, hoặc đọc sai hoàn toàn nội dung → bắt buộc đánh "isComplete": false, "score": 0. 
+- Chỉ đánh "isComplete": true khi học sinh đã đọc đủ và đúng nội dung bài.
 
-BƯỚC 3: CÔNG THỨC TÍNH ĐIỂM (THANG 10)
-- Hãy chấm điểm từ 0 đến 10 cho từng tiêu chí trong 5 tiêu chí sau (trả về trong criteriaScores):
+BƯỚC 3: CÔNG THỨC TÍNH ĐIỂM (THANG ĐIỂM 10)
+- Hãy chấm điểm từ 1 đến 10 cho từng tiêu chí trong 5 tiêu chí sau (trả về trong criteriaScores):
   1. pronunciation: Phát âm chuẩn các âm (vowels, consonants, ending sounds).
   2. stress: Nhấn đúng trọng âm từ.
   3. intonation: Ngữ điệu câu lên/xuống tự nhiên.
   4. fluency: Tốc độ đọc trôi chảy, không ngắt quãng quá nhiều.
   5. connectedSpeech: Nối âm, nuốt âm tự nhiên.
-- TỔNG ĐIỂM (score) = 7.0 + (Trung bình cộng của 5 tiêu chí trên / 10) * 3.0 (làm tròn đến 1 chữ số thập phân).
-  Ví dụ: Trung bình cộng 5 tiêu chí là 8.0 -> Tổng điểm = 7.0 + (8.0 / 10) * 3.0 = 9.4.
-  Hãy đảm bảo tổng điểm khớp hoàn toàn với công thức này.
+- TỔNG ĐIỂM (score) = Trung bình cộng của 5 tiêu chí trên (làm tròn đến 1 chữ số thập phân).
+  Ví dụ: Các tiêu chí là 8, 7, 8, 9, 8 -> Tổng điểm = 8.0.
 
 BƯỚC 4: XẾP LOẠI CEFR
 Dựa trên tổng điểm và trình độ target:
@@ -714,11 +732,12 @@ BƯỚC 5: PHÂN TÍCH IPA
 - Gợi ý cách sửa cụ thể (khẩu hình miệng, vị trí lưỡi, cách bật hơi).
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎀 PHONG CÁCH PHẢN HỒI (Ms. Yến)
+🎀 PHONG CÁCH PHẢN HỒI CỦA GIÁO VIÊN GIỎI CHUYÊN NGHIỆP (Ms. Yến)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- Ấm áp, yêu thương, luôn bắt đầu bằng "Chào con, cô Yến đây!"
-- Khen trước, góp ý sau. Mang tính kiến tạo.
-- Dù điểm thấp vẫn phải khuyến khích cố gắng.
+- Đóng vai "Ms Yến", một giáo viên giỏi, chuyên nghiệp nhưng vô cùng ấm áp, luôn bắt đầu bằng "Chào em, Ms Yến đây!" hoặc "Cô Yến chào em nhé!".
+- Luôn động viên, khích lệ tinh thần học sinh để các em yêu thích việc học tiếng Anh.
+- Chỉ ra lỗi sai cho học sinh một cách rõ ràng, dễ hiểu và mang tính xây dựng. Hướng dẫn cụ thể cách khắc phục (ví dụ: chú ý âm đuôi, mở khẩu hình).
+- Dù điểm thấp vẫn phải có lời khen ngợi sự cố gắng và khích lệ nỗ lực của học sinh.
 
 Output JSON:
 {
@@ -777,10 +796,9 @@ Output JSON:
         
         // Calculate average of 5 criteria
         const avg = (p + s + i + f + c) / 5;
-        const calculatedScore = 7.0 + (avg / 10) * 3.0;
-        finalScore = Math.round(calculatedScore * 10) / 10;
+        finalScore = Math.round(avg * 10) / 10;
       } else {
-        finalScore = Math.max(7.0, Math.min(10.0, result.score || 7.0));
+        finalScore = Math.max(1.0, Math.min(10.0, result.score || 1.0));
         finalScore = Math.round(finalScore * 10) / 10;
       }
       finalScore = Math.max(0.0, Math.min(10.0, finalScore));

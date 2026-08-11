@@ -471,7 +471,7 @@ const GrammarDetailSection: React.FC<{ grammarText: string }> = ({ grammarText }
                       <Lightbulb size={16} className="text-amber-500 shrink-0 mt-0.5" />
                       <div>
                         <span className="text-[10px] font-black uppercase tracking-wide text-amber-600 block mb-0.5">💡 Mẹo ghi nhớ</span>
-                        <p className="text-xs text-amber-800 leading-relaxed font-medium">{block.tip}</p>
+                        <p className="text-xs text-slate-500 font-medium">Bạn có thể làm tốt hơn nữa! Hãy luyện tập thêm nhé.</p>
                       </div>
                     </div>
                   )}
@@ -485,13 +485,138 @@ const GrammarDetailSection: React.FC<{ grammarText: string }> = ({ grammarText }
   );
 };
 
+// Component for individual comprehension question with microphone
+const ComprehensionQuestionItem: React.FC<{ index: number, question: string, suggestedAnswer: string }> = ({ index, question, suggestedAnswer }) => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [score, setScore] = useState<number | null>(null);
+  const recognitionRef = useRef<any>(null);
+
+  const calculateScore = (recognized: string, expected: string) => {
+    const normalize = (t: string) => t.toLowerCase().replace(/[.,!?]/g, '').trim();
+    const rWords = normalize(recognized).split(/\s+/);
+    const eWords = normalize(expected).split(/\s+/);
+    
+    let matches = 0;
+    rWords.forEach(w => {
+      if (eWords.includes(w)) matches++;
+    });
+    
+    return Math.min(10, Math.round((matches / Math.max(eWords.length, 1)) * 10));
+  };
+
+  const startRecording = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng sử dụng Chrome.');
+      return;
+    }
+    
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+      setTranscript('');
+      setScore(null);
+    };
+
+    recognition.onresult = (event: any) => {
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (finalTranscript) {
+        setTranscript(finalTranscript);
+        setScore(calculateScore(finalTranscript, suggestedAnswer));
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  };
+
+  return (
+    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+      <div className="flex gap-3 mb-3">
+        <span className="font-bold text-indigo-400 shrink-0">Câu {index}.</span>
+        <p className="font-medium text-slate-800 flex-1">{question}</p>
+      </div>
+      <div className="ml-9 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <button
+          onClick={isRecording ? stopRecording : startRecording}
+          className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm ${
+            isRecording 
+              ? 'bg-rose-500 text-white animate-pulse shadow-rose-200' 
+              : 'bg-white border border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:scale-105'
+          }`}
+        >
+          {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+        </button>
+        
+        <div className="flex-1 min-w-0 space-y-2 w-full">
+          {transcript && (
+            <div className="text-sm bg-white p-2 rounded border border-slate-200">
+              <span className="text-slate-400 italic mr-2">Bạn:</span>
+              <span className="text-slate-700 font-medium">{transcript}</span>
+            </div>
+          )}
+          {score !== null && !isRecording && (
+            <div className={`text-xs font-bold px-2 py-1 rounded w-fit ${score >= 7 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+              {score >= 7 ? 'Rất tốt!' : 'Cần cố gắng!'} ({score}/10)
+            </div>
+          )}
+          {(!isRecording && score !== null && score < 7) && (
+            <div className="text-[10px] text-indigo-500 font-medium bg-indigo-50 px-2 py-1 rounded">
+              Gợi ý: {suggestedAnswer}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const PosterPreview: React.FC<PosterPreviewProps> = ({
-  readingText, translationText, vocabulary,
-  generatedTopicName, topic, level, showTranslation,
-  audioUrl, audioRef, isPlaying, isAudioLoading, isBrowserTTS,
-  setIsPlaying, handlePlayAudio,
-  isDownloading, onDownloadPoster, onToggleTranslation,
-  posterRef, grammarSummary
+  readingText,
+  translationText,
+  vocabulary,
+  generatedTopicName,
+  topic,
+  level,
+  showTranslation,
+  audioUrl,
+  audioRef,
+  isPlaying,
+  isAudioLoading,
+  isBrowserTTS,
+  setIsPlaying,
+  handlePlayAudio,
+  isDownloading,
+  onDownloadPoster,
+  onToggleTranslation,
+  posterRef,
+  grammarSummary,
+  comprehensionQuestions,
 }) => {
   const [isVocabPlaying, setIsVocabPlaying] = useState(false);
 
@@ -582,11 +707,6 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
                       <span className="text-sm font-bold font-serif text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-xl border border-indigo-200 shadow-sm shrink-0">{item.ipa}</span>
                     </div>
                     <span className="text-base font-medium italic text-slate-700 whitespace-normal leading-relaxed mb-1">{item.meaning} {item.emoji}</span>
-                    {item.example && (
-                      <div className="text-xs text-gray-700 mt-1 p-2 bg-gray-50 rounded-lg border border-gray-200 italic">
-                        <strong>Ví dụ:</strong> "{item.example}"
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>

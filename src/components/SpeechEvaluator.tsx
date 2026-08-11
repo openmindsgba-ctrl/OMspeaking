@@ -64,7 +64,7 @@ export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
           <div className="flex flex-col items-center gap-3 py-4 animate-pulse">
             <RefreshCw className="animate-spin text-brand-blue" size={32} />
             <div className="text-center">
-              <p className="text-sm font-black text-brand-blue">Cô Trang đang nghe và chấm điểm cho con nhé...</p>
+              <p className="text-sm font-black text-brand-blue">Chờ Ms Yến chấm điểm cho em nhé...</p>
               <p className="text-[10px] text-slate-400 font-medium">Bé chờ cô một chút xíu thôi!</p>
             </div>
           </div>
