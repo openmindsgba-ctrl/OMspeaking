@@ -118,7 +118,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
                           <div className="absolute right-4 top-1/2 -translate-y-1/2">
                             {isCorrect ? <CheckCircle className="text-green-500" /> : <X className="text-red-500" />}
                           </div>
-                        -->
+                        )}
                       </div>
 
                       {isSubmitted && !isCorrect && (
@@ -133,7 +133,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
                             </p>
                           </div>
                         </motion.div>
-                      -->
+                      )}
                       
                       {isSubmitted && isCorrect && (
                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="ml-10 mt-3">
@@ -144,20 +144,20 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
                               </p>
                             </div>
                          </motion.div>
-                      -->
+                      )}
                     </div>
                   );
-                }-->
+                })}
               </div>
             </div>
           );
-        }-->
+        })}
 
         {(!questions || questions.length === 0) && (
           <div className="p-8 text-center text-gray-500 bg-white rounded-2xl border-2 border-dashed border-gray-200">
             Không có câu hỏi nào trong bài học này.
           </div>
-        -->
+        )}
       </div>
 
       {!isSubmitted && questions.length > 0 && (
@@ -169,7 +169,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
             Nộp Bài & Chấm Điểm
           </button>
         </div>
-      -->
+      )}
 
       {isSubmitted && (
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mt-8 mb-10 p-6 sm:p-10 bg-green-50 border-4 border-green-200 rounded-[2rem] shadow-lg relative overflow-hidden">
@@ -185,7 +185,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
                 <div>
                   <h4 className="font-black text-pink-700 text-sm mb-1">Ms. Yến nhận xét:</h4>
                   <p className="text-slate-700 font-medium text-sm leading-relaxed">
-                    {getMsYenFeedback(score-->
+                    {getMsYenFeedback(score)}
                   </p>
                 </div>
               </div>
@@ -197,7 +197,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
             </div>
           </div>
         </motion.div>
-      -->
+      )}
     </div>
   );
 };
