@@ -8,14 +8,20 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ apiKey, onOpenApiKeyModal }) => (
-  <header className="bg-brand-blue border-b border-brand-blue-dark sticky top-0 z-50 shadow-lg">
-    <div className="max-w-6xl mx-auto px-3 sm:px-4 h-16 sm:h-20 flex items-center justify-between">
-      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-        <BrandLogo className="w-10 h-10 sm:w-12 sm:h-12 shrink-0" />
-        <h1 className="text-lg sm:text-2xl font-black tracking-tight text-brand-gold uppercase truncate">Open Minds English Centre</h1>
+  <header className="bg-brand-blue border-b border-brand-blue-dark sticky top-0 z-50 shadow-lg overflow-hidden">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 h-20 sm:h-28 flex items-center justify-between relative">
+      
+      {/* Left spacer for balance */}
+      <div className="w-10 sm:w-32 shrink-0"></div>
+      
+      {/* Centered Logo & Title */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-2 sm:gap-5 w-full px-16 sm:px-32 z-10">
+        <BrandLogo className="w-16 h-16 sm:w-24 sm:h-24 shrink-0 shadow-sm bg-white p-1 rounded-lg" />
+        <h1 className="text-[16px] sm:text-3xl md:text-4xl font-black tracking-tight text-brand-gold uppercase truncate drop-shadow-md">Open Minds English Centre</h1>
       </div>
       
-      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+      {/* API Key button on the right */}
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0 relative z-20">
         <button 
           onClick={onOpenApiKeyModal}
           className="flex flex-col items-end group"

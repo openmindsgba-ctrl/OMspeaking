@@ -346,14 +346,14 @@ export default function App() {
   return (
     <div className="min-h-screen bg-brand-blue-dark text-white font-sans selection:bg-brand-gold/20 relative overflow-hidden">
       {/* Decorative Background Icons */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-10 z-0">
-        <Star className="absolute top-10 left-10 text-blue-400" size={120} />
-        <Sparkles className="absolute top-1/4 right-20 text-brand-blue" size={100} />
-        <GraduationCap className="absolute bottom-20 left-1/4 text-brand-blue" size={150} />
-        <Trophy className="absolute bottom-1/3 right-10 text-blue-500" size={130} />
-        <ImageIcon className="absolute top-1/2 left-10 text-blue-400" size={80} />
-        <Mic className="absolute top-20 right-1/3 text-blue-500" size={110} />
-        <Star className="absolute bottom-10 right-1/4 text-blue-400" size={90} />
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 flex items-center justify-center">
+        <BrandLogo className="absolute top-10 left-10 w-40 h-40 opacity-10 mix-blend-screen" />
+        <BrandLogo className="absolute top-1/4 right-20 w-48 h-48 opacity-10 mix-blend-screen" />
+        <BrandLogo className="absolute bottom-20 left-1/4 w-56 h-56 opacity-10 mix-blend-screen" />
+        <BrandLogo className="absolute bottom-1/3 right-10 w-40 h-40 opacity-10 mix-blend-screen" />
+        <BrandLogo className="absolute top-1/2 left-10 w-32 h-32 opacity-10 mix-blend-screen" />
+        <BrandLogo className="absolute top-20 right-1/3 w-48 h-48 opacity-10 mix-blend-screen" />
+        <BrandLogo className="absolute bottom-10 right-1/4 w-32 h-32 opacity-10 mix-blend-screen" />
       </div>
 
       {/* Header */}
