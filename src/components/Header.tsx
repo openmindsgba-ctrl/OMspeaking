@@ -13,12 +13,12 @@ export const Header: React.FC<HeaderProps> = ({ apiKey, onOpenApiKeyModal }) => 
       
       {/* Centered Logo, Title, and Slogan Block */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-3 sm:gap-6 w-full px-4 sm:px-32 z-10">
-        <BrandLogo className="w-20 h-20 sm:w-28 sm:h-28 shrink-0 shadow-md bg-white p-1 sm:p-2 rounded-xl" />
-        <div className="flex flex-col items-start justify-center">
-          <h1 className="text-base sm:text-3xl md:text-4xl font-black tracking-tight text-brand-gold uppercase drop-shadow-md leading-tight">
+        <BrandLogo className="w-32 sm:w-56 h-auto shrink-0 shadow-md bg-white p-1 sm:p-2 rounded-xl" />
+        <div className="flex flex-col items-center justify-center">
+          <h1 className="text-base sm:text-3xl md:text-4xl font-black tracking-tight text-brand-gold uppercase drop-shadow-md leading-tight text-center">
             Open Minds English Centre
           </h1>
-          <p className="text-[10px] sm:text-base md:text-lg font-bold italic text-white uppercase tracking-widest drop-shadow-md mt-0.5 sm:mt-1">
+          <p className="text-xs sm:text-2xl md:text-3xl font-bold italic text-white uppercase tracking-widest drop-shadow-md mt-1 sm:mt-2 text-center">
             Learn English to go further
           </p>
         </div>
