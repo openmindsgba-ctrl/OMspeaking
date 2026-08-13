@@ -187,7 +187,7 @@ export interface ContentGenerationResult {
   translation2?: string;
   reading2Answers?: string[];
   homework?: any;
-  comprehensionQuestions?: { question: string, suggestedAnswer: string }[];
+  comprehensionQuestions?: { question: string, options: string[], correctAnswer: string, suggestedAnswer: string }[];
 }
 
 export type EnglishLevel = "Starters" | "Movers" | "Flyers" | "A1" | "A2" | "B1" | "B2";
@@ -321,7 +321,7 @@ export const generateContent = async (
      - "meaning": brief Vietnamese meaning
      - "emoji": a relevant emoji
   9. "overallGrammar": Tóm tắt ngữ pháp trọng tâm dưới dạng Markdown list phân cấp (dùng gạch đầu dòng -, thò thụt đầu dòng) để có thể hiển thị như một mindmap. Bao gồm: giải thích ngắn gọn dễ hiểu, công thức (nếu có), ví dụ cụ thể và mẹo ghi nhớ nhanh. Bắt buộc dùng tiếng Việt.
-  10. "comprehensionQuestions": Sinh ra chính xác 10 câu hỏi đọc hiểu (reading comprehension) dựa trên bài đọc 1, kèm theo câu trả lời gợi ý cho từng câu. Output dạng mảng các object: [{"question": "...", "suggestedAnswer": "..."}].
+  10. "comprehensionQuestions": Sinh ra chính xác 10 câu hỏi đọc hiểu trắc nghiệm (multiple choice) dựa trên bài đọc 1. Mỗi câu có 4 lựa chọn A, B, C, D. Output dạng mảng các object: [{"question": "câu hỏi bằng tiếng Anh", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correctAnswer": "A", "suggestedAnswer": "giải thích ngắn gọn bằng tiếng Việt tại sao đáp án đúng"}]. Đảm bảo mỗi câu có ĐÚNG 4 options và correctAnswer là một trong A, B, C, D.
   11. "homework": Generate homework exercises related to the topic and grammar. Output exactly this JSON structure:
       "matching": { "items": [{"term": "english word", "definition": "vietnamese definition"}] } (5 items)
       "fillBlanks": [{"sentence": "sentence with ___", "options": ["opt1", "opt2", "opt3"], "answer": "correct option"}] (5 items)
@@ -341,7 +341,7 @@ export const generateContent = async (
     "translation2": "string",
     "overallGrammar": "string",
     "comprehensionQuestions": [
-      { "question": "string", "suggestedAnswer": "string" }
+      { "question": "string", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correctAnswer": "A", "suggestedAnswer": "string" }
     ],
     "vocabulary": [
       { "word": "string", "ipa": "string", "meaning": "string", "emoji": "string" }

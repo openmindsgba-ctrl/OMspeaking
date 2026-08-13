@@ -20,6 +20,7 @@ import { CertificateModal } from './components/CertificateModal';
 import { Footer } from './components/Footer';
 import { LessonHistory } from './components/LessonHistory';
 import { ExerciseSection } from './components/ExerciseSection';
+import { ReadingComprehension } from './components/ReadingComprehension';
 
 // Hooks
 import { useFileProcessor } from './hooks/useFileProcessor';
@@ -50,7 +51,7 @@ export default function App() {
   const [overallGrammar, setOverallGrammar] = useState<string | null>(null);
   const [reading2Answers, setReading2Answers] = useState<string[] | undefined>(undefined);
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
-  const [comprehensionQuestions, setComprehensionQuestions] = useState<{question: string, suggestedAnswer: string}[] | null>(null);
+  const [comprehensionQuestions, setComprehensionQuestions] = useState<{question: string, options: string[], correctAnswer: string, suggestedAnswer: string}[] | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
   const [generatedTopicName, setGeneratedTopicName] = useState<string | null>(null);
   const [exerciseData, setExerciseData] = useState<ExerciseData | null>(null);
@@ -517,7 +518,12 @@ export default function App() {
 
 
 
-                      {/* Exercise Section moved to below Reading 2 */}
+                      {/* Reading Comprehension - Multiple Choice */}
+                      {comprehensionQuestions && comprehensionQuestions.length > 0 && (
+                        <div className="w-full max-w-4xl mx-auto mt-8">
+                          <ReadingComprehension questions={comprehensionQuestions} />
+                        </div>
+                      )}
 
                       {/* Reading 2 Poster (Fill in the blanks) */}
                       {readingText2 && (

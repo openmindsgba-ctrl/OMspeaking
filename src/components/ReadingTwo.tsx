@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Volume2, CheckCircle, XCircle, Award } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Volume2, CheckCircle, XCircle, Award, Play, Pause } from 'lucide-react';
 import { EnglishLevel, VocabularyItem } from '../types';
 import { HomeworkSection } from './HomeworkSection';
+
+const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5];
 
 interface ReadingTwoProps {
   readingText: string;
@@ -39,6 +41,83 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
   const [userInputs, setUserInputs] = useState<Record<number, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  // Audio player state
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [speed, setSpeed] = useState(1);
+  const progressRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+    const handleLoadedMetadata = () => setDuration(audio.duration);
+    const handleEnded = () => setIsPlaying(false);
+    const handlePause = () => setIsPlaying(false);
+    const handlePlay = () => setIsPlaying(true);
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('play', handlePlay);
+
+    // Set initial duration if already loaded
+    if (audio.duration) setDuration(audio.duration);
+
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('play', handlePlay);
+    };
+  }, [audioRef, setIsPlaying]);
+
+  const togglePlay = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) {
+      // If audio hasn't been loaded yet, use handlePlayAudio
+      handlePlayAudio();
+      return;
+    }
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play().catch(console.error);
+    }
+  }, [audioRef, isPlaying, handlePlayAudio]);
+
+  const handleSpeedChange = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const currentIdx = SPEED_OPTIONS.indexOf(speed);
+    const nextIdx = (currentIdx + 1) % SPEED_OPTIONS.length;
+    const newSpeed = SPEED_OPTIONS[nextIdx];
+    audio.playbackRate = newSpeed;
+    setSpeed(newSpeed);
+  }, [audioRef, speed]);
+
+  const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const audio = audioRef.current;
+    const bar = progressRef.current;
+    if (!audio || !bar || !duration) return;
+    const rect = bar.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, x / rect.width));
+    audio.currentTime = ratio * duration;
+  }, [audioRef, duration]);
+
+  const formatTime = (t: number) => {
+    if (!t || isNaN(t)) return '0:00';
+    const m = Math.floor(t / 60);
+    const s = Math.floor(t % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
   const handleInputChange = (index: number, value: string) => {
     setUserInputs(prev => ({ ...prev, [index]: value }));
   };
@@ -65,18 +144,69 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
         <h3 className="text-xl sm:text-2xl font-black text-brand-blue uppercase tracking-widest">
           Reading 2 (Fill in the blanks)
         </h3>
-        
-        {audioUrl && (
-          <button
-            onClick={handlePlayAudio}
-            disabled={isAudioLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-gold hover:bg-yellow-400 text-brand-blue-dark font-black rounded-xl transition-all disabled:opacity-50"
-          >
-            <Volume2 size={20} />
-            {isPlaying ? 'Dừng' : (isAudioLoading ? 'Đang tải...' : 'Nghe')}
-          </button>
-        )}
       </div>
+
+      {/* Custom Audio Player Bar */}
+      {audioUrl && (
+        <div className="px-1 space-y-2">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Play/Pause Button */}
+            <button onClick={togglePlay}
+              disabled={isAudioLoading}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all shrink-0 shadow-sm disabled:opacity-50"
+              style={{
+                background: isPlaying ? 'linear-gradient(135deg, #1D4ED8, #DC2626)' : 'linear-gradient(135deg, #6366f1, #818cf8)',
+                color: '#ffffff'
+              }}
+            >
+              {isAudioLoading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : isPlaying ? (
+                <Pause size={16} />
+              ) : (
+                <Play size={16} className="ml-0.5" />
+              )}
+            </button>
+
+            {/* Progress Bar */}
+            <div className="flex-1 space-y-0.5">
+              <div
+                ref={progressRef}
+                onClick={handleProgressClick}
+                className="w-full h-2 bg-slate-100 rounded-full cursor-pointer group relative overflow-hidden"
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-100"
+                  style={{ width: `${progress}%`, background: 'linear-gradient(90deg, #6366f1, #1D4ED8)' }}
+                />
+                {/* Thumb */}
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full border-2 border-indigo-500 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ left: `calc(${progress}% - 7px)` }}
+                />
+              </div>
+              <div className="flex justify-between text-[9px] font-bold text-slate-400 px-0.5">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+            </div>
+
+            {/* Speed Button */}
+            <button
+              onClick={handleSpeedChange}
+              className="px-2 py-1 rounded-lg text-[10px] font-black transition-all shrink-0 border"
+              style={{
+                backgroundColor: speed !== 1 ? '#eef2ff' : '#f9fafb',
+                borderColor: speed !== 1 ? '#c7d2fe' : '#e5e7eb',
+                color: speed !== 1 ? '#4f46e5' : '#6b7280'
+              }}
+              title="Thay đổi tốc độ"
+            >
+              {speed}x
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="text-sm sm:text-base font-medium text-slate-700 leading-loose mt-2">
         {parts.map((part, i) => {
@@ -211,6 +341,7 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
         <audio
           ref={audioRef}
           src={audioUrl}
+          preload="metadata"
           onEnded={() => setIsPlaying(false)}
           onPause={() => setIsPlaying(false)}
           onPlay={() => setIsPlaying(true)}

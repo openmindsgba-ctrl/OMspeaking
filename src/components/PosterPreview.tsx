@@ -24,47 +24,219 @@ interface PosterPreviewProps {
   grammarSummary?: string | null;
 }
 
-// ====== READING PRACTICE SECTION ======
+// ====== CEFR SPEAKING EVALUATION SECTION ======
+interface CEFRCriteria {
+  name: string;
+  nameEn: string;
+  score: number; // 0-10
+  feedback: string;
+  icon: string;
+}
+
+interface CEFRResult {
+  criteria: CEFRCriteria[];
+  overallScore: number;
+  cefrLevel: string;
+  overallComment: string;
+  missedWords: string[];
+  extraWords: string[];
+}
+
+const getCEFRLevel = (score: number): string => {
+  if (score >= 9.5) return 'C2';
+  if (score >= 8.5) return 'C1';
+  if (score >= 7) return 'B2';
+  if (score >= 5.5) return 'B1';
+  if (score >= 4) return 'A2';
+  if (score >= 2) return 'A1';
+  return 'Pre-A1';
+};
+
+const getCEFRColor = (level: string): string => {
+  switch (level) {
+    case 'C2': return 'from-yellow-400 to-amber-500';
+    case 'C1': return 'from-purple-500 to-indigo-600';
+    case 'B2': return 'from-blue-500 to-cyan-500';
+    case 'B1': return 'from-emerald-500 to-teal-500';
+    case 'A2': return 'from-orange-400 to-red-400';
+    case 'A1': return 'from-rose-400 to-pink-500';
+    default: return 'from-slate-400 to-slate-500';
+  }
+};
+
+const getCEFRDescription = (level: string): string => {
+  switch (level) {
+    case 'C2': return 'Thành thạo - Mastery';
+    case 'C1': return 'Nâng cao - Advanced';
+    case 'B2': return 'Trung cấp cao - Upper Intermediate';
+    case 'B1': return 'Trung cấp - Intermediate';
+    case 'A2': return 'Sơ cấp - Elementary';
+    case 'A1': return 'Nhập môn - Beginner';
+    default: return 'Chuẩn bị - Pre-beginner';
+  }
+};
+
+const evaluateCEFR = (spokenText: string, originalText: string): CEFRResult => {
+  const normalize = (text: string) => text.toLowerCase().replace(/[^\w\s']/gi, '').split(/\s+/).filter(Boolean);
+  const spokenWords = normalize(spokenText);
+  const originalWords = normalize(originalText);
+
+  if (originalWords.length === 0 || spokenWords.length === 0) {
+    return {
+      criteria: [
+        { name: 'Phát âm', nameEn: 'Pronunciation', score: 0, feedback: 'Chưa có dữ liệu để đánh giá.', icon: '🗣️' },
+        { name: 'Sự lưu loát', nameEn: 'Fluency', score: 0, feedback: 'Chưa có dữ liệu để đánh giá.', icon: '💨' },
+        { name: 'Độ chính xác', nameEn: 'Accuracy', score: 0, feedback: 'Chưa có dữ liệu để đánh giá.', icon: '🎯' },
+        { name: 'Vốn từ vựng', nameEn: 'Range & Vocabulary', score: 0, feedback: 'Chưa có dữ liệu để đánh giá.', icon: '📚' },
+      ],
+      overallScore: 0,
+      cefrLevel: 'Pre-A1',
+      overallComment: 'Bạn chưa đọc từ nào, hãy nhấn thu âm và đọc to rõ ràng nhé!',
+      missedWords: [],
+      extraWords: [],
+    };
+  }
+
+  // --- Word-level analysis ---
+  const spokenFreq: Record<string, number> = {};
+  spokenWords.forEach(w => spokenFreq[w] = (spokenFreq[w] || 0) + 1);
+  const originalFreq: Record<string, number> = {};
+  originalWords.forEach(w => originalFreq[w] = (originalFreq[w] || 0) + 1);
+
+  let matchCount = 0;
+  const tempFreq = { ...spokenFreq };
+  originalWords.forEach(w => {
+    if (tempFreq[w] > 0) {
+      matchCount++;
+      tempFreq[w]--;
+    }
+  });
+
+  // Words in original but not spoken
+  const missedWords: string[] = [];
+  const origFreqCopy = { ...originalFreq };
+  const spokenFreqCopy = { ...spokenFreq };
+  for (const w of Object.keys(origFreqCopy)) {
+    const diff = origFreqCopy[w] - (spokenFreqCopy[w] || 0);
+    if (diff > 0) missedWords.push(w);
+  }
+
+  // Words spoken but not in original
+  const extraWords: string[] = [];
+  const origFreqCopy2 = { ...originalFreq };
+  const spokenFreqCopy2 = { ...spokenFreq };
+  for (const w of Object.keys(spokenFreqCopy2)) {
+    const diff = spokenFreqCopy2[w] - (origFreqCopy2[w] || 0);
+    if (diff > 0) extraWords.push(w);
+  }
+
+  // --- Accuracy: how many original words were correctly said ---
+  const accuracyRatio = matchCount / originalWords.length;
+  const accuracyScore = Math.min(10, Math.max(0, Math.round(accuracyRatio * 10 * 10) / 10));
+
+  // --- Pronunciation: penalize for extra/wrong words (indicates mispronunciation) ---
+  const wrongWordRatio = extraWords.length / Math.max(spokenWords.length, 1);
+  const pronScore = Math.min(10, Math.max(0, Math.round((1 - wrongWordRatio * 0.8) * accuracyRatio * 10 * 10) / 10));
+
+  // --- Fluency: based on coverage and length ratio ---
+  const lengthRatio = spokenWords.length / originalWords.length;
+  let fluencyBase = accuracyRatio;
+  if (lengthRatio < 0.3) fluencyBase *= 0.4;
+  else if (lengthRatio < 0.5) fluencyBase *= 0.6;
+  else if (lengthRatio < 0.7) fluencyBase *= 0.8;
+  else if (lengthRatio > 1.5) fluencyBase *= 0.85;
+  const fluencyScore = Math.min(10, Math.max(0, Math.round(fluencyBase * 10 * 10) / 10));
+
+  // --- Range: unique vocabulary used vs original unique vocabulary ---
+  const spokenUnique = new Set(spokenWords);
+  const originalUnique = new Set(originalWords);
+  let matchedUnique = 0;
+  originalUnique.forEach(w => { if (spokenUnique.has(w)) matchedUnique++; });
+  const rangeRatio = matchedUnique / originalUnique.size;
+  const rangeScore = Math.min(10, Math.max(0, Math.round(rangeRatio * 10 * 10) / 10));
+
+  // --- Feedback per criterion ---
+  const pronFeedback = pronScore >= 9 ? 'Phát âm rất chuẩn xác, gần như hoàn hảo! Giọng đọc tự nhiên và rõ ràng.' :
+    pronScore >= 7 ? 'Phát âm khá tốt, đa số các từ được nhận diện chính xác. Một vài từ cần luyện thêm.' :
+    pronScore >= 5 ? 'Phát âm ở mức trung bình. Nhiều từ chưa được phát âm rõ ràng, cần luyện tập thêm với audio mẫu.' :
+    pronScore >= 3 ? 'Phát âm còn yếu, nhiều từ bị nhận diện sai. Hãy nghe lại bài mẫu và luyện từng từ một.' :
+    'Phát âm cần cải thiện nhiều. Hãy bắt đầu bằng việc nghe và lặp lại từng từ đơn giản.';
+
+  const fluencyFeedback = fluencyScore >= 9 ? 'Đọc rất trôi chảy, tốc độ tự nhiên, không bị ngắt quãng.' :
+    fluencyScore >= 7 ? 'Đọc khá trôi chảy, đôi khi có ngắt nghỉ nhưng nhìn chung mạch lạc.' :
+    fluencyScore >= 5 ? 'Tốc độ đọc chưa đều, có nhiều chỗ ngắt quãng. Cần luyện đọc liền mạch hơn.' :
+    fluencyScore >= 3 ? 'Đọc còn chậm và ngắt quãng nhiều. Hãy luyện đọc từng câu ngắn trước.' :
+    'Cần luyện tập thêm nhiều. Hãy bắt đầu bằng cách đọc từng cụm từ ngắn.';
+
+  const accFeedback = accuracyScore >= 9 ? 'Độ chính xác xuất sắc! Hầu hết các từ trong bài đều được đọc đúng.' :
+    accuracyScore >= 7 ? 'Độ chính xác khá cao, chỉ bỏ sót vài từ. Rất tốt!' :
+    accuracyScore >= 5 ? 'Đọc được khoảng một nửa bài. Cần đọc chậm hơn và chú ý từng từ.' :
+    accuracyScore >= 3 ? 'Còn bỏ sót nhiều từ trong bài. Hãy đọc lại từng đoạn nhỏ.' :
+    'Cần đọc lại toàn bộ bài. Hãy nghe audio mẫu nhiều lần trước khi thử lại.';
+
+  const rangeFeedback = rangeScore >= 9 ? 'Sử dụng được gần như toàn bộ từ vựng trong bài, rất ấn tượng!' :
+    rangeScore >= 7 ? 'Vốn từ tốt, đã sử dụng được phần lớn từ vựng trong bài đọc.' :
+    rangeScore >= 5 ? 'Sử dụng được khoảng một nửa từ vựng. Cần mở rộng thêm vốn từ.' :
+    rangeScore >= 3 ? 'Vốn từ còn hạn chế, chỉ đọc được một số từ cơ bản.' :
+    'Cần học thêm từ vựng. Hãy ôn lại phần Word Bank bên trên.';
+
+  const criteria: CEFRCriteria[] = [
+    { name: 'Phát âm', nameEn: 'Pronunciation', score: pronScore, feedback: pronFeedback, icon: '🗣️' },
+    { name: 'Sự lưu loát', nameEn: 'Fluency', score: fluencyScore, feedback: fluencyFeedback, icon: '💨' },
+    { name: 'Độ chính xác', nameEn: 'Accuracy', score: accFeedback ? accuracyScore : 0, feedback: accFeedback, icon: '🎯' },
+    { name: 'Vốn từ vựng', nameEn: 'Range & Vocabulary', score: rangeScore, feedback: rangeFeedback, icon: '📚' },
+  ];
+
+  const overallScore = Math.round(((pronScore + fluencyScore + accuracyScore + rangeScore) / 4) * 10) / 10;
+  const cefrLevel = getCEFRLevel(overallScore);
+
+  let overallComment = '';
+  if (overallScore >= 9) {
+    overallComment = 'Tuyệt vời quá! Con đọc rất xuất sắc, phát âm chuẩn xác và trôi chảy. Cô Yến rất tự hào về con! 🌟✨';
+  } else if (overallScore >= 7) {
+    overallComment = 'Rất tốt! Con đã thể hiện khả năng đọc ấn tượng. Chỉ cần luyện thêm một chút là hoàn hảo rồi! 👏💪';
+  } else if (overallScore >= 5) {
+    overallComment = 'Khá tốt! Con đã cố gắng nhiều rồi. Hãy nghe lại audio mẫu và luyện tập thêm, con sẽ tiến bộ rất nhanh! 📈';
+  } else if (overallScore >= 3) {
+    overallComment = 'Cố gắng lên con! Hãy nghe lại bài mẫu thật kỹ, đọc chậm rãi từng câu một. Luyện tập mỗi ngày con sẽ giỏi lên nhanh thôi! 💪🌱';
+  } else {
+    overallComment = 'Không sao đâu con, bài này hơi khó. Con hãy bắt đầu bằng cách nghe audio mẫu nhiều lần, rồi đọc theo từng từ một nhé. Cô tin con làm được! ❤️🌱';
+  }
+
+  return { criteria, overallScore, cefrLevel, overallComment, missedWords: missedWords.slice(0, 10), extraWords: extraWords.slice(0, 5) };
+};
+
+const getScoreColor = (score: number) => {
+  if (score >= 8) return { bar: 'bg-gradient-to-r from-emerald-400 to-green-500', text: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' };
+  if (score >= 6) return { bar: 'bg-gradient-to-r from-blue-400 to-cyan-500', text: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200' };
+  if (score >= 4) return { bar: 'bg-gradient-to-r from-amber-400 to-orange-500', text: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200' };
+  return { bar: 'bg-gradient-to-r from-rose-400 to-red-500', text: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-200' };
+};
+
 const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalText }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const [score, setScore] = useState<number | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [result, setResult] = useState<CEFRResult | null>(null);
+  const [showDetails, setShowDetails] = useState(true);
+  const [insufficientCoverage, setInsufficientCoverage] = useState(false);
+  const [coveragePercent, setCoveragePercent] = useState(0);
   const recognitionRef = useRef<any>(null);
 
-  const calculateScore = (spokenText: string, originalText: string) => {
-    const normalize = (text: string) => text.toLowerCase().replace(/[^\w\s]/gi, '').split(/\s+/).filter(Boolean);
-    const spokenWords = normalize(spokenText);
-    const originalWords = normalize(originalText);
-    
-    if (originalWords.length === 0) return { score: 0, feedback: 'Văn bản gốc trống.' };
-    if (spokenWords.length === 0) return { score: 0, feedback: 'Bạn chưa đọc từ nào, hãy nhấn thu âm và đọc to rõ ràng nhé!' };
+  const MIN_COVERAGE = 70;
 
-    let matchCount = 0;
+  const calculateCoverage = (spokenText: string, origText: string): number => {
+    const normalize = (text: string) => text.toLowerCase().replace(/[^\w\s']/gi, '').split(/\s+/).filter(Boolean);
+    const spokenWords = normalize(spokenText);
+    const originalWords = normalize(origText);
+    if (originalWords.length === 0) return 0;
     const spokenFreq: Record<string, number> = {};
     spokenWords.forEach(w => spokenFreq[w] = (spokenFreq[w] || 0) + 1);
-    
+    let matchCount = 0;
+    const tempFreq = { ...spokenFreq };
     originalWords.forEach(w => {
-      if (spokenFreq[w] > 0) {
-        matchCount++;
-        spokenFreq[w]--;
-      }
+      if (tempFreq[w] > 0) { matchCount++; tempFreq[w]--; }
     });
-
-    let rawScore = (matchCount / originalWords.length) * 10;
-    
-    const lengthRatio = spokenWords.length / originalWords.length;
-    if (lengthRatio < 0.5) rawScore *= (lengthRatio * 1.5); 
-    
-    const finalScore = Math.min(10, Math.max(1, Math.round(rawScore * 10) / 10));
-    
-    let fb = '';
-    if (finalScore >= 9) fb = 'Xuất sắc! Bạn phát âm rất chuẩn và trôi chảy! 🎉';
-    else if (finalScore >= 7) fb = 'Rất tốt! Bạn đọc khá trôi chảy, cố gắng phát âm rõ hơn một vài từ nhé! 👍';
-    else if (finalScore >= 5) fb = 'Khá tốt! Bạn hãy nghe lại bài mẫu và luyện tập thêm để tự tin hơn. 💪';
-    else fb = 'Đừng nản lòng! Hãy chia nhỏ bài đọc ra và luyện tập từng câu một nhé. 🌱';
-    
-    return { score: finalScore, feedback: fb };
+    return Math.round((matchCount / originalWords.length) * 100);
   };
 
   const startRecording = () => {
@@ -72,94 +244,234 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
       alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng sử dụng Chrome.');
       return;
     }
-    
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
-
     recognition.onstart = () => {
       setIsRecording(true);
       setTranscript('');
-      setScore(null);
-      setFeedback(null);
+      setResult(null);
+      setInsufficientCoverage(false);
+      setCoveragePercent(0);
     };
-
     recognition.onresult = (event: any) => {
       let finalTranscript = '';
       for (let i = 0; i < event.results.length; i++) {
         finalTranscript += event.results[i][0].transcript;
       }
       setTranscript(finalTranscript);
+      if (originalText) setCoveragePercent(calculateCoverage(finalTranscript, originalText));
     };
-
-    recognition.onerror = (event: any) => {
-      console.error(event.error);
-      setIsRecording(false);
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
-
+    recognition.onerror = (event: any) => { console.error(event.error); setIsRecording(false); };
+    recognition.onend = () => { setIsRecording(false); };
     recognitionRef.current = recognition;
     recognition.start();
   };
 
   const stopRecording = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      setIsRecording(false);
-    }
+    if (recognitionRef.current) { recognitionRef.current.stop(); setIsRecording(false); }
   };
 
   useEffect(() => {
     if (!isRecording && transcript && originalText) {
-      const result = calculateScore(transcript, originalText);
-      setScore(result.score);
-      setFeedback(result.feedback);
+      const coverage = calculateCoverage(transcript, originalText);
+      setCoveragePercent(coverage);
+      if (coverage < MIN_COVERAGE) {
+        setInsufficientCoverage(true);
+        setResult(null);
+      } else {
+        setInsufficientCoverage(false);
+        setResult(evaluateCEFR(transcript, originalText));
+      }
     }
   }, [isRecording, transcript, originalText]);
 
+  const getCoverageBarColor = (pct: number) => {
+    if (pct >= MIN_COVERAGE) return 'bg-gradient-to-r from-emerald-400 to-green-500';
+    if (pct >= 50) return 'bg-gradient-to-r from-amber-400 to-orange-500';
+    return 'bg-gradient-to-r from-rose-400 to-red-500';
+  };
+
   return (
-    <div className="mt-6 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-col items-center" data-html2canvas-ignore>
-      <div className="text-center mb-3">
-        <h4 className="text-sm font-bold text-indigo-800 uppercase tracking-wide">Luyện Đọc</h4>
-        <p className="text-xs text-indigo-600/70 mt-1">Bấm vào micro và đọc to bài văn trên nhé!</p>
+    <div className="mt-6 p-4 sm:p-6 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-col items-center" data-html2canvas-ignore>
+      <div className="text-center mb-4">
+        <h4 className="text-sm sm:text-base font-black text-indigo-800 uppercase tracking-wide">🎤 Luyện Đọc & Chấm Điểm Speaking</h4>
+        <p className="text-xs text-indigo-600/70 mt-1">Đánh giá theo Khung tham chiếu Châu Âu (CEFR) — Thang điểm 10</p>
+        <p className="text-[10px] text-rose-500 font-bold mt-1.5 bg-rose-50 px-3 py-1 rounded-full inline-block border border-rose-200">
+          ⚠️ Bạn phải đọc đúng và đọc hết toàn bộ bài mới được chấm điểm
+        </p>
       </div>
 
       <button
         onClick={isRecording ? stopRecording : startRecording}
-        className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-md ${
+        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
           isRecording 
-            ? 'bg-rose-500 text-white animate-pulse shadow-rose-200' 
-            : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:scale-105 shadow-indigo-200'
+            ? 'bg-rose-500 text-white animate-pulse shadow-rose-300 scale-110' 
+            : 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 hover:scale-105 shadow-indigo-200'
         }`}
       >
-        {isRecording ? <MicOff size={24} /> : <Mic size={24} />}
+        {isRecording ? <MicOff size={28} /> : <Mic size={28} />}
       </button>
+      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mt-2">
+        {isRecording ? '🔴 Đang thu âm...' : 'Nhấn để thu âm'}
+      </p>
 
       {isRecording && (
-        <div className="mt-3 text-xs text-rose-500 font-medium animate-pulse">
-          Đang thu âm... Hãy đọc bài đi nào!
+        <div className="mt-4 w-full space-y-2">
+          <div className="flex items-center gap-2 text-xs text-rose-500 font-medium animate-pulse justify-center">
+            <div className="flex gap-1">
+              <div className="w-1 h-3 bg-rose-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-1 h-4 bg-rose-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-1 h-3 bg-rose-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              <div className="w-1 h-5 bg-rose-500 rounded-full animate-bounce" style={{ animationDelay: '100ms' }}></div>
+              <div className="w-1 h-3 bg-rose-400 rounded-full animate-bounce" style={{ animationDelay: '250ms' }}></div>
+            </div>
+            Hãy đọc to toàn bộ bài văn!
+          </div>
+          <div className="bg-white rounded-xl p-3 border border-indigo-100 shadow-sm">
+            <div className="flex items-center justify-between text-[10px] font-bold mb-1.5">
+              <span className="text-slate-500">📊 Tiến độ đọc bài</span>
+              <span className={coveragePercent >= MIN_COVERAGE ? 'text-emerald-600' : 'text-slate-500'}>
+                {coveragePercent}% {coveragePercent >= MIN_COVERAGE ? '✅' : `(cần ≥${MIN_COVERAGE}%)`}
+              </span>
+            </div>
+            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full transition-all duration-300 ${getCoverageBarColor(coveragePercent)}`} style={{ width: `${Math.min(100, coveragePercent)}%` }} />
+            </div>
+          </div>
         </div>
       )}
 
       {transcript && !isRecording && (
         <div className="mt-4 w-full bg-white p-3 rounded-xl border border-indigo-100 shadow-sm">
-          <p className="text-xs text-slate-500 mb-1 italic">Văn bản nhận diện được:</p>
-          <p className="text-sm text-slate-700 italic">"{transcript}"</p>
+          <p className="text-[10px] text-slate-400 uppercase tracking-wide font-bold mb-1">Văn bản nhận diện được:</p>
+          <p className="text-sm text-slate-700 italic leading-relaxed">"{transcript}"</p>
         </div>
       )}
 
-      {score !== null && !isRecording && (
-        <div className="mt-4 w-full bg-white p-4 rounded-xl border border-emerald-100 shadow-sm flex flex-col items-center text-center">
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle className="text-emerald-500" size={24} />
-            <h4 className="text-lg font-black text-emerald-600">ĐIỂM SỐ: {score}/10</h4>
+      {!isRecording && transcript && (
+        <div className="mt-3 w-full bg-white rounded-xl p-3 border border-indigo-100 shadow-sm">
+          <div className="flex items-center justify-between text-xs font-bold mb-1.5">
+            <span className="text-slate-600">📊 Độ bao phủ bài đọc</span>
+            <span className={`font-black ${coveragePercent >= MIN_COVERAGE ? 'text-emerald-600' : 'text-rose-600'}`}>{coveragePercent}%</span>
           </div>
-          <p className="text-sm font-medium text-slate-700">{feedback}</p>
+          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-500 ${getCoverageBarColor(coveragePercent)}`} style={{ width: `${Math.min(100, coveragePercent)}%` }} />
+          </div>
+          <div className="relative mt-0.5">
+            <div className="absolute text-[9px] font-bold text-slate-400" style={{ left: `${MIN_COVERAGE}%`, transform: 'translateX(-50%)' }}>↑ {MIN_COVERAGE}%</div>
+          </div>
+        </div>
+      )}
+
+      {insufficientCoverage && !isRecording && (
+        <div className="mt-4 w-full p-4 bg-rose-50 rounded-xl border-2 border-rose-200 shadow-sm animate-in fade-in duration-300">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-rose-200 border-2 border-rose-300 flex items-center justify-center shrink-0">
+              <span className="text-xl">⚠️</span>
+            </div>
+            <div>
+              <h5 className="font-black text-rose-700 text-sm mb-1">Chưa đủ điều kiện chấm điểm</h5>
+              <p className="text-xs text-rose-800 font-medium leading-relaxed">
+                Bạn mới đọc được <span className="font-black text-rose-600">{coveragePercent}%</span> bài đọc.
+                Cần đọc ít nhất <span className="font-black text-rose-600">{MIN_COVERAGE}%</span> nội dung bài mới được chấm điểm.
+              </p>
+              <p className="text-xs text-rose-600 mt-2 font-bold">💡 Hãy đọc to, rõ ràng và đọc hết toàn bộ bài văn rồi thử lại nhé!</p>
+            </div>
+          </div>
+          <button
+            onClick={() => { setTranscript(''); setResult(null); setInsufficientCoverage(false); setCoveragePercent(0); }}
+            className="mt-3 w-full py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-xl transition-all text-sm shadow-sm active:scale-[0.98] uppercase tracking-wider"
+          >
+            🔄 Đọc lại từ đầu
+          </button>
+        </div>
+      )}
+
+      {result && !isRecording && !insufficientCoverage && (
+        <div className="mt-6 w-full space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="relative overflow-hidden bg-white rounded-2xl border-2 border-indigo-100 shadow-md p-5">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-indigo-50 to-transparent rounded-bl-full opacity-50"></div>
+            <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10">
+              <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${getCEFRColor(result.cefrLevel)} flex flex-col items-center justify-center shadow-lg`}>
+                <span className="text-white text-2xl font-black leading-none">{result.cefrLevel}</span>
+                <span className="text-white/80 text-[8px] font-bold uppercase tracking-wider">CEFR</span>
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <div className="text-3xl font-black text-slate-800">{result.overallScore}<span className="text-lg text-slate-400">/10</span></div>
+                <p className="text-xs font-bold text-indigo-600 mt-0.5">{getCEFRDescription(result.cefrLevel)}</p>
+                <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wide font-bold">Điểm tổng hợp Speaking</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className="w-full flex items-center justify-between px-4 py-2.5 bg-white rounded-xl border border-slate-200 hover:bg-slate-50 transition-all text-sm font-bold text-slate-600"
+          >
+            <span>📊 Chi tiết đánh giá từng tiêu chí</span>
+            <span className={`transition-transform duration-300 ${showDetails ? 'rotate-180' : ''}`}>▼</span>
+          </button>
+
+          {showDetails && (
+            <div className="space-y-3 animate-in fade-in duration-300">
+              {result.criteria.map((c, idx) => {
+                const colors = getScoreColor(c.score);
+                return (
+                  <div key={idx} className={`p-4 rounded-xl border ${colors.border} ${colors.bg} shadow-sm`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{c.icon}</span>
+                        <div>
+                          <span className="font-black text-sm text-slate-800">{c.name}</span>
+                          <span className="text-[10px] text-slate-400 ml-1.5 font-medium">({c.nameEn})</span>
+                        </div>
+                      </div>
+                      <span className={`text-lg font-black ${colors.text}`}>{c.score}/10</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-white/80 rounded-full overflow-hidden mb-2 border border-white/50">
+                      <div className={`h-full rounded-full ${colors.bar} transition-all duration-700`} style={{ width: `${c.score * 10}%` }} />
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed">{c.feedback}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {result.missedWords.length > 0 && (
+            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 shadow-sm">
+              <h5 className="text-xs font-black text-amber-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                ⚠️ Các từ chưa đọc được ({result.missedWords.length} từ)
+              </h5>
+              <div className="flex flex-wrap gap-1.5">
+                {result.missedWords.map((w, i) => (
+                  <span key={i} className="px-2.5 py-1 bg-white rounded-lg text-xs font-bold text-amber-800 border border-amber-200 shadow-sm">{w}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="p-4 bg-pink-50 rounded-xl border-2 border-pink-100 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-pink-200 border-2 border-pink-300 flex items-center justify-center shrink-0">
+                <span className="text-xl">👩‍🏫</span>
+              </div>
+              <div>
+                <h5 className="font-black text-pink-700 text-sm mb-1">Nhận xét chung của Ms. Yến</h5>
+                <p className="text-sm text-pink-900 font-medium leading-relaxed">{result.overallComment}</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => { setTranscript(''); setResult(null); setCoveragePercent(0); }}
+            className="w-full py-3 bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-700 font-black rounded-xl transition-all text-sm shadow-sm active:scale-[0.98] uppercase tracking-wider"
+          >
+            🔄 Đọc lại
+          </button>
         </div>
       )}
     </div>
