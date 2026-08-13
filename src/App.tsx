@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { 
   Image as ImageIcon, Sparkles, Download, RefreshCw, 
-  Star, GraduationCap, Trophy, Mic, Languages, Clock
+  Star, GraduationCap, Trophy, Mic, Languages, Clock, KeyRound
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import html2canvas from 'html2canvas';
@@ -347,13 +347,13 @@ export default function App() {
     <div className="min-h-screen bg-brand-blue-dark text-white font-sans selection:bg-brand-gold/20 relative overflow-hidden">
       {/* Decorative Background Icons */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 flex items-center justify-center">
-        <BrandLogo className="absolute top-10 left-10 w-40 h-40 opacity-10 mix-blend-screen" />
-        <BrandLogo className="absolute top-1/4 right-20 w-48 h-48 opacity-10 mix-blend-screen" />
-        <BrandLogo className="absolute bottom-20 left-1/4 w-56 h-56 opacity-10 mix-blend-screen" />
-        <BrandLogo className="absolute bottom-1/3 right-10 w-40 h-40 opacity-10 mix-blend-screen" />
-        <BrandLogo className="absolute top-1/2 left-10 w-32 h-32 opacity-10 mix-blend-screen" />
-        <BrandLogo className="absolute top-20 right-1/3 w-48 h-48 opacity-10 mix-blend-screen" />
-        <BrandLogo className="absolute bottom-10 right-1/4 w-32 h-32 opacity-10 mix-blend-screen" />
+        <KeyRound className="absolute top-10 left-10 w-24 h-24 text-blue-300 opacity-10 -rotate-45" />
+        <KeyRound className="absolute top-1/4 right-20 w-32 h-32 text-indigo-400 opacity-10 rotate-12" />
+        <KeyRound className="absolute bottom-20 left-1/4 w-40 h-40 text-blue-400 opacity-10 -rotate-12" />
+        <KeyRound className="absolute bottom-1/3 right-10 w-28 h-28 text-indigo-300 opacity-10 rotate-45" />
+        <KeyRound className="absolute top-1/2 left-10 w-24 h-24 text-blue-400 opacity-10 -rotate-90" />
+        <KeyRound className="absolute top-20 right-1/3 w-36 h-36 text-indigo-400 opacity-10 rotate-180" />
+        <KeyRound className="absolute bottom-10 right-1/4 w-20 h-20 text-blue-300 opacity-10 rotate-90" />
       </div>
 
       {/* Header */}
@@ -389,12 +389,6 @@ export default function App() {
                 className="w-full h-auto object-cover" 
               />
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-brand-gold tracking-tight uppercase mb-2 drop-shadow-md">
-              OPEN MINDS ENGLISH CENTRE
-            </h2>
-            <p className="text-lg sm:text-xl md:text-2xl font-bold italic text-white uppercase tracking-widest drop-shadow-md mb-6">
-              Learn English to go further
-            </p>
           </motion.div>
           
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 bg-slate-100/50 p-2 rounded-2xl border border-slate-200">
