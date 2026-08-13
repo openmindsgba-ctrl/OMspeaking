@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { CheckCircle, XCircle, Award } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { CheckCircle, XCircle, Award, Mic, MicOff, Loader2 } from 'lucide-react';
 
 export interface ComprehensionQuestion {
   question: string;
@@ -15,8 +15,104 @@ interface ReadingComprehensionProps {
 export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ questions }) => {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [activeMic, setActiveMic] = useState<number | null>(null);
+  const [transcript, setTranscript] = useState<string>("");
+  const recognitionRef = useRef<any>(null);
 
   const letters = ['A', 'B', 'C', 'D'];
+
+  // Cleanup speech recognition on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  const startSpeechRecognition = (qIdx: number) => {
+    if (isSubmitted) return;
+    
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng sử dụng Chrome.');
+      return;
+    }
+    
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    let hasSelected = false;
+
+    recognition.onstart = () => {
+      setActiveMic(qIdx);
+      setTranscript("");
+    };
+
+    recognition.onresult = (event: any) => {
+      if (hasSelected) return;
+      let finalTranscript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        finalTranscript += event.results[i][0].transcript;
+      }
+      
+      setTranscript(finalTranscript);
+      const spoken = finalTranscript.toLowerCase().trim();
+      if (!spoken) return;
+
+      const q = questions[qIdx];
+      
+      // Match against A, B, C, D letters
+      const matchesLetter = spoken.match(/\b(a|b|c|d)\b/i) || spoken.match(/\b(ây|bi|xi|đi)\b/i);
+      if (matchesLetter) {
+        const letterMap: Record<string, string> = { 'a': 'A', 'ây': 'A', 'b': 'B', 'bi': 'B', 'c': 'C', 'xi': 'C', 'd': 'D', 'đi': 'D' };
+        const key = matchesLetter[1].toLowerCase();
+        handleOptionSelect(qIdx, letterMap[key]);
+        hasSelected = true;
+        recognition.stop();
+        return;
+      }
+
+      // Match against option text
+      for (let i = 0; i < q.options.length; i++) {
+        const optText = q.options[i].replace(/^[A-D]\.\s*/, '').toLowerCase().trim();
+        // Allow selection if they speak exactly the text, or at least a significant portion
+        if (spoken.includes(optText) || (optText.length > 4 && spoken.includes(optText.substring(0, optText.length / 2)))) {
+          handleOptionSelect(qIdx, letters[i]);
+          hasSelected = true;
+          recognition.stop();
+          return;
+        }
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error(event.error);
+      setActiveMic(null);
+    };
+
+    recognition.onend = () => {
+      setActiveMic(null);
+      setTranscript("");
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  const stopSpeechRecognition = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setActiveMic(null);
+      setTranscript("");
+    }
+  };
 
   const handleOptionSelect = (qIndex: number, letter: string) => {
     if (isSubmitted) return;
@@ -46,20 +142,42 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
             READING COMPREHENSION
           </h2>
           <p className="text-sm text-slate-500 font-medium">
-            Chọn đáp án đúng (A, B, C hoặc D)
+            Chọn đáp án đúng (A, B, C hoặc D) hoặc ấn vào nút Micro và đọc to đáp án!
           </p>
         </div>
 
         <div className="space-y-8">
           {questions.map((q, qIdx) => (
             <div key={qIdx} className="space-y-4">
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-brand-blue text-white flex items-center justify-center font-black text-sm shrink-0">
+              <div className="flex gap-4 items-start">
+                <div className="w-8 h-8 rounded-full bg-brand-blue text-white flex items-center justify-center font-black text-sm shrink-0 mt-1">
                   {qIdx + 1}
                 </div>
-                <div className="font-semibold text-slate-800 pt-1">
+                <div className="flex-1 font-semibold text-slate-800 pt-1 leading-relaxed">
                   {q.question}
+                  
+                  {/* Live transcript feedback for active mic */}
+                  {activeMic === qIdx && transcript && (
+                    <div className="mt-2 text-xs text-blue-600 font-medium italic bg-blue-50 p-2 rounded-lg border border-blue-100">
+                      Bạn đang nói: "{transcript}"
+                    </div>
+                  )}
                 </div>
+                
+                {/* Voice Answer Button */}
+                {!isSubmitted && (
+                  <button
+                    onClick={() => activeMic === qIdx ? stopSpeechRecognition() : startSpeechRecognition(qIdx)}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 shadow-sm border-2 ${
+                      activeMic === qIdx
+                        ? 'bg-rose-50 border-rose-200 text-rose-500 animate-pulse'
+                        : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-brand-blue hover:border-brand-blue hover:bg-blue-50'
+                    }`}
+                    title="Trả lời bằng giọng nói"
+                  >
+                    {activeMic === qIdx ? <MicOff size={18} /> : <Mic size={18} />}
+                  </button>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-0 sm:pl-12">

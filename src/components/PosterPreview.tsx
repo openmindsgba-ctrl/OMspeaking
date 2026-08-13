@@ -194,15 +194,15 @@ const evaluateCEFR = (spokenText: string, originalText: string): CEFRResult => {
 
   let overallComment = '';
   if (overallScore >= 9) {
-    overallComment = 'Tuyệt vời quá! Con đọc rất xuất sắc, phát âm chuẩn xác và trôi chảy. Cô Yến rất tự hào về con! 🌟✨';
+    overallComment = 'Thật xuất sắc! Cô đánh giá rất cao độ hoàn thiện trong bài đọc của con. Con đã phát âm tròn vành rõ chữ, ngữ điệu tự nhiên và đọc đầy đủ nội dung bài. Hãy tiếp tục duy trì phong độ tuyệt vời này nhé! 🌟';
   } else if (overallScore >= 7) {
-    overallComment = 'Rất tốt! Con đã thể hiện khả năng đọc ấn tượng. Chỉ cần luyện thêm một chút là hoàn hảo rồi! 👏💪';
+    overallComment = 'Bài đọc của con đạt mức khá giỏi. Con đã đọc được phần lớn số từ với phát âm tương đối chuẩn. Để hoàn hảo hơn, con hãy chú ý mở khẩu hình ở các âm đuôi (ending sounds) và đảm bảo không lướt qua hay bỏ sót chữ nào nhé. 👏';
   } else if (overallScore >= 5) {
-    overallComment = 'Khá tốt! Con đã cố gắng nhiều rồi. Hãy nghe lại audio mẫu và luyện tập thêm, con sẽ tiến bộ rất nhanh! 📈';
+    overallComment = 'Con đã có một sự nỗ lực đáng ghi nhận. Tuy nhiên, độ bao phủ từ vựng và sự rõ ràng trong phát âm vẫn cần được cải thiện. Cô khuyên con nên chia nhỏ bài đọc, nghe kỹ audio gốc và lặp lại từng cụm từ để không bị rớt chữ. 💪';
   } else if (overallScore >= 3) {
-    overallComment = 'Cố gắng lên con! Hãy nghe lại bài mẫu thật kỹ, đọc chậm rãi từng câu một. Luyện tập mỗi ngày con sẽ giỏi lên nhanh thôi! 💪🌱';
+    overallComment = 'Cô thấy con đang gặp chút khó khăn. Số từ con bỏ sót khá nhiều và nhiều âm tiết chưa rõ, khiến nội dung bị gián đoạn. Không sao cả! Con hãy nghe lại audio mẫu thêm vài lần, sau đó đọc thật chậm rãi từng từ một trước khi ghép thành câu nhé. 📚';
   } else {
-    overallComment = 'Không sao đâu con, bài này hơi khó. Con hãy bắt đầu bằng cách nghe audio mẫu nhiều lần, rồi đọc theo từng từ một nhé. Cô tin con làm được! ❤️🌱';
+    overallComment = 'Bài đọc này đang hơi quá sức vì tỷ lệ hoàn thiện từ và độ chuẩn xác âm của con còn thấp. Con hãy tạm dừng việc đọc cả bài, bắt đầu lại bằng cách nghe audio mẫu và luyện tập thật kỹ từng câu ngắn. Cô tin với sự kiên trì, con sẽ tiến bộ! ❤️';
   }
 
   return { criteria, overallScore, cefrLevel, overallComment, missedWords: missedWords.slice(0, 10), extraWords: extraWords.slice(0, 5) };
@@ -346,12 +346,6 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
         </div>
       )}
 
-      {transcript && !isRecording && (
-        <div className="mt-4 w-full bg-white p-3 rounded-xl border border-indigo-100 shadow-sm">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wide font-bold mb-1">Văn bản nhận diện được:</p>
-          <p className="text-sm text-slate-700 italic leading-relaxed">"{transcript}"</p>
-        </div>
-      )}
 
       {!isRecording && transcript && (
         <div className="mt-3 w-full bg-white rounded-xl p-3 border border-indigo-100 shadow-sm">
