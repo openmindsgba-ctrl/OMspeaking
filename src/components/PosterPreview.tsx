@@ -4,6 +4,7 @@ import { VocabularyItem, EnglishLevel } from '../types';
 import { ReadingComprehension, ComprehensionQuestion } from './ReadingComprehension';
 
 interface PosterPreviewProps {
+  apiKey?: string;
   readingText: string | null;
   translationText: string | null;
   vocabulary: VocabularyItem[];
@@ -905,6 +906,7 @@ const ComprehensionQuestionItem: React.FC<{ index: number, question: string, sug
 };
 
 export const PosterPreview: React.FC<PosterPreviewProps> = ({
+  apiKey,
   readingText,
   translationText,
   vocabulary,
@@ -1057,7 +1059,7 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
             {readingText && <ReadingPractice originalText={readingText} />}
             {comprehensionQuestions && comprehensionQuestions.length > 0 && (
               <div data-html2canvas-ignore className="mt-8">
-                <ReadingComprehension questions={comprehensionQuestions} />
+                <ReadingComprehension questions={comprehensionQuestions} apiKey={apiKey || ""} />
               </div>
             )}
           </div>

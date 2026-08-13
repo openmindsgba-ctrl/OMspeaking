@@ -492,6 +492,7 @@ export default function App() {
                     <motion.div key="result" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full flex flex-col items-center gap-4">
                       {/* Poster */}
                       <PosterPreview
+                        apiKey={apiKey}
                         readingText={readingText}
                         translationText={translationText} vocabulary={vocabulary}
                         generatedTopicName={generatedTopicName} topic={topic} level={level}

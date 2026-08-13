@@ -951,3 +951,61 @@ Output JSON:
     throw new Error("Failed to evaluate answer. Please try again.");
   }
 };
+
+export const evaluateComprehensionAnswer = async (
+  apiKey: string,
+  question: string,
+  studentAnswer: string,
+  suggestedAnswer: string
+): Promise<{ isCorrect: boolean; feedback: string }> => {
+  if (!apiKey) throw new Error("API key is required");
+  if (!studentAnswer || studentAnswer.trim().length === 0) {
+    return {
+      isCorrect: false,
+      feedback: "Cô không nghe rõ con nói gì. Con hãy thử đọc lại lớn và rõ ràng hơn nhé!"
+    };
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+  
+  const prompt = `You are an encouraging and professional English teacher (Ms. Yến) evaluating a young student's spoken answer to a reading comprehension question.
+
+Question: "${question}"
+Suggested Correct Answer: "${suggestedAnswer}"
+Student's Spoken Answer (transcript): "${studentAnswer}"
+
+Evaluate the student's answer. 
+Is it conceptually correct based on the suggested answer? 
+Keep in mind speech recognition might have minor typos, so evaluate the meaning and closeness to the correct answer.
+
+Output your evaluation strictly in the following JSON format without any markdown blocks or extra text:
+{
+  "isCorrect": true/false,
+  "feedback": "Your short, encouraging feedback in Vietnamese (max 2 sentences). If correct, praise them. If incorrect, explain gently what the correct idea is."
+}`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        temperature: 0.2,
+      }
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("Empty response from AI");
+    
+    const parsed = parseSafeJson(text);
+    return {
+      isCorrect: !!parsed.isCorrect,
+      feedback: parsed.feedback || (parsed.isCorrect ? "Câu trả lời của con rất chính xác! Khá lắm!" : "Câu trả lời chưa chính xác. Con hãy thử lại nhé!")
+    };
+  } catch (err: any) {
+    console.error("Evaluate Comprehension Answer Error:", err);
+    return {
+      isCorrect: false,
+      feedback: "Đã có lỗi xảy ra khi chấm bài. Con vui lòng thử lại nhé!"
+    };
+  }
+};
