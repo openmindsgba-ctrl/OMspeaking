@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { FileText, Volume2, Pause, RefreshCw, Target, Play, BookOpen, Lightbulb, Zap, Mic, MicOff, CheckCircle } from 'lucide-react';
 import { VocabularyItem, EnglishLevel } from '../types';
+import { ReadingComprehension, ComprehensionQuestion } from './ReadingComprehension';
 
 interface PosterPreviewProps {
   readingText: string | null;
@@ -22,6 +23,7 @@ interface PosterPreviewProps {
   onToggleTranslation: () => void;
   posterRef: React.RefObject<HTMLDivElement | null>;
   grammarSummary?: string | null;
+  comprehensionQuestions?: ComprehensionQuestion[] | null;
 }
 
 // ====== CEFR SPEAKING EVALUATION SECTION ======
@@ -1059,6 +1061,11 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
               {readingText ? renderMarkdown(readingText) : null}
             </div>
             {readingText && <ReadingPractice originalText={readingText} />}
+            {comprehensionQuestions && comprehensionQuestions.length > 0 && (
+              <div data-html2canvas-ignore className="mt-8">
+                <ReadingComprehension questions={comprehensionQuestions} />
+              </div>
+            )}
           </div>
 
           {showTranslation && translationText && (

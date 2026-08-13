@@ -400,6 +400,7 @@ export const generateContent = async (
       vocabulary: result.vocabulary || [],
       overallGrammar: result.overallGrammar || "",
       reading2Answers: result.reading2Answers || [],
+      comprehensionQuestions: result.comprehensionQuestions || null,
       homework: result.homework || null,
     };
   } catch (e) {

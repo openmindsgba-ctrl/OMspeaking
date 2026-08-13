@@ -20,7 +20,6 @@ import { CertificateModal } from './components/CertificateModal';
 import { Footer } from './components/Footer';
 import { LessonHistory } from './components/LessonHistory';
 import { ExerciseSection } from './components/ExerciseSection';
-import { ReadingComprehension } from './components/ReadingComprehension';
 
 // Hooks
 import { useFileProcessor } from './hooks/useFileProcessor';
@@ -517,13 +516,6 @@ export default function App() {
 
 
 
-
-                      {/* Reading Comprehension - Multiple Choice */}
-                      {comprehensionQuestions && comprehensionQuestions.length > 0 && (
-                        <div className="w-full max-w-4xl mx-auto mt-8">
-                          <ReadingComprehension questions={comprehensionQuestions} />
-                        </div>
-                      )}
 
                       {/* Reading 2 Poster (Fill in the blanks) */}
                       {readingText2 && (
