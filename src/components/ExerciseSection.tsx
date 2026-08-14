@@ -10,10 +10,10 @@ interface ExerciseSectionProps {
 }
 
 const TYPE_LABELS: Record<QuestionType, string> = {
-  fill_blank: "Phần 1: Điền từ thích hợp vào chỗ trống",
-  rearrange: "Phần 2: Sắp xếp lại các từ thành câu hoàn chỉnh",
-  find_mistake: "Phần 3: Tìm lỗi sai và sửa chúng",
-  complete_sentence: "Phần 4: Hoàn thành câu sử dụng những từ đã cho"
+  fill_blank: "Part 1: Fill in the blank",
+  rearrange: "Part 2: Rearrange words into a complete sentence",
+  find_mistake: "Part 3: Find and correct the mistakes",
+  complete_sentence: "Part 4: Complete the sentence using the given words"
 };
 
 export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, onComplete, savedScore }) => {
@@ -40,7 +40,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
   };
 
   const handleSubmit = () => {
-    if (window.confirm("Bạn đã chắc chắn muốn nộp bài chưa?")) {
+    if (window.confirm("Are you sure you want to submit?")) {
       setIsSubmitted(true);
       const score = calculateScore();
       onComplete(score);
@@ -48,10 +48,10 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
   };
 
   const getMsYenFeedback = (score: number) => {
-    if (score >= 9) return "Tuyệt vời quá con yêu! Con làm rất xuất sắc, cô Yến rất tự hào về con! 🌟";
-    if (score >= 7) return "Làm tốt lắm! Con hãy xem lại phần giải thích để rút kinh nghiệm những câu sai nhé, sắp hoàn hảo rồi! 👍";
-    if (score >= 5) return "Cố lên con! Lần sau con chú ý đọc kỹ đề hơn một chút là điểm sẽ cao ngay. Cô tin con làm được! 💪";
-    return "Không sao đâu con, bài này hơi khó một chút. Con hãy xem kỹ lại đáp án và giải thích nhé! ❤️";
+    if (score >= 9) return "Tuyệt vời quá em yêu! Em làm rất xuất sắc, Cô Yến rất tự hào về em! 🌟";
+    if (score >= 7) return "Làm tốt lắm! Em hãy xem lại phần giải thích để rút kinh nghiệm những câu sai nhé, sắp hoàn hảo rồi! 👍";
+    if (score >= 5) return "Cố lên em! Lần sau em chú ý đọc kỹ đề hơn một chút là điểm sẽ cao ngay. Cô Yến tin em làm được! 💪";
+    return "Không sao đâu em, bài này hơi khó một chút. Em hãy xem kỹ lại đáp án và giải thích nhé! ❤️";
   };
 
   // Group questions by type
@@ -70,10 +70,10 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 sm:p-8 rounded-[2rem] shadow-xl text-white relative overflow-hidden">
         <div className="absolute -right-10 -bottom-10 opacity-20"><FileText size={150} /></div>
         <h3 className="text-2xl sm:text-3xl font-black flex items-center gap-3 relative z-10">
-          Bài Tập Thực Hành
+          Practice Exercises
         </h3>
         <p className="text-blue-100 mt-3 font-medium text-sm sm:text-base max-w-lg relative z-10">
-          Hoàn thành {questions.length} câu hỏi dưới đây. Sau khi nộp bài, Ms. Yến sẽ chấm điểm và nhận xét cho bạn.
+          Complete the {questions.length} questions below. After submitting, Cô Yến will grade and give you feedback.
         </p>
       </div>
 
@@ -96,7 +96,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
                   return (
                     <div key={q.id || idx} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                       <div className="flex gap-3 mb-3">
-                        <span className="font-bold text-slate-400 shrink-0">Câu {idx + 1}.</span>
+                        <span className="font-bold text-slate-400 shrink-0">Question {idx + 1}.</span>
                         <p className="font-medium text-slate-800 text-lg leading-relaxed">{q.questionText || ""}</p>
                       </div>
                       <div className="ml-10 relative">
@@ -105,7 +105,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
                           value={userInputs[q.id] || ""}
                           onChange={(e) => handleInputChange(q.id, e.target.value)}
                           disabled={isSubmitted}
-                          placeholder="Nhập câu trả lời của bạn..."
+                          placeholder="Enter your answer..."
                           className={`w-full p-3 rounded-xl border-2 transition-colors ${
                             isSubmitted 
                               ? isCorrect 
@@ -123,13 +123,13 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
 
                       {isSubmitted && !isCorrect && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="ml-10 mt-3 p-4 bg-white border border-red-200 rounded-xl shadow-sm">
-                          <p className="text-sm font-bold text-green-700 mb-1">✅ Đáp án đúng:</p>
-                          <p className="text-base font-bold text-slate-800 mb-3">{q.expectedAnswer || "Không có đáp án"}</p>
+                          <p className="text-sm font-bold text-green-700 mb-1">✅ Correct Answer:</p>
+                          <p className="text-base font-bold text-slate-800 mb-3">{q.expectedAnswer || "No answer provided"}</p>
                           
                           <div className="flex gap-2 items-start mt-3 pt-3 border-t border-slate-100">
                             <Info size={16} className="text-brand-blue shrink-0 mt-0.5" />
                             <p className="text-sm text-slate-600 italic">
-                              <strong>Giải thích:</strong> {q.explanation || "Không có giải thích"}
+                              <strong>Explanation:</strong> {q.explanation || "No explanation provided"}
                             </p>
                           </div>
                         </motion.div>
@@ -140,7 +140,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
                             <div className="flex gap-2 items-start p-3 bg-green-50 rounded-lg border border-green-100">
                               <Info size={16} className="text-green-600 shrink-0 mt-0.5" />
                               <p className="text-sm text-green-800 italic">
-                                <strong>Giải thích:</strong> {q.explanation || "Không có giải thích"}
+                                <strong>Explanation:</strong> {q.explanation || "No explanation provided"}
                               </p>
                             </div>
                          </motion.div>
@@ -155,7 +155,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
 
         {(!questions || questions.length === 0) && (
           <div className="p-8 text-center text-gray-500 bg-white rounded-2xl border-2 border-dashed border-gray-200">
-            Không có câu hỏi nào trong bài học này.
+            There are no questions in this lesson.
           </div>
         )}
       </div>
@@ -166,7 +166,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
             onClick={handleSubmit}
             className="px-10 py-4 bg-brand-blue hover:bg-brand-blue-dark text-white font-black text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all active:scale-95 uppercase tracking-wider"
           >
-            Nộp Bài & Chấm Điểm
+            Submit & Grade
           </button>
         </div>
       )}
@@ -176,14 +176,14 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
           <div className="absolute top-10 right-10 p-4 opacity-10"><Award size={150} className="text-green-500" /></div>
           <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
             <div className="flex-1 text-center md:text-left">
-              <h4 className="text-xl sm:text-2xl font-black text-green-800 mb-2 uppercase tracking-wide">Kết Quả Bài Làm</h4>
+              <h4 className="text-xl sm:text-2xl font-black text-green-800 mb-2 uppercase tracking-wide">Your Result</h4>
               
               <div className="flex items-start gap-3 p-4 bg-white rounded-xl border border-green-100 mt-4 shadow-sm inline-flex text-left">
                 <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center shrink-0 border-2 border-pink-200 text-2xl">
                   👩‍🏫
                 </div>
                 <div>
-                  <h4 className="font-black text-pink-700 text-sm mb-1">Ms. Yến nhận xét:</h4>
+                  <h4 className="font-black text-pink-700 text-sm mb-1">Feedback from Cô Yến:</h4>
                   <p className="text-slate-700 font-medium text-sm leading-relaxed">
                     {getMsYenFeedback(score)}
                   </p>
@@ -192,7 +192,7 @@ export const ExerciseSection: React.FC<ExerciseSectionProps> = ({ exerciseData, 
             </div>
             
             <div className="bg-white p-6 rounded-3xl shadow-md border-2 border-green-100 text-center min-w-[200px]">
-              <p className="text-gray-500 font-bold mb-1 uppercase tracking-widest text-xs">Tổng điểm</p>
+              <p className="text-gray-500 font-bold mb-1 uppercase tracking-widest text-xs">Total Score</p>
               <div className="text-6xl font-black text-green-500 drop-shadow-sm">{score} <span className="text-3xl text-gray-300">/10</span></div>
             </div>
           </div>

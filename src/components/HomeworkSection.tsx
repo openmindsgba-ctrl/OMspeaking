@@ -27,7 +27,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h3 className="text-xl font-black text-indigo-800 flex items-center gap-2">
           <BookOpen size={24} className="text-indigo-600" />
-          Bài Tập Về Nhà
+          Homework
         </h3>
         <button
           onClick={() => setShowAnswers(!showAnswers)}
@@ -37,7 +37,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
               : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md'
           }`}
         >
-          {showAnswers ? 'Ẩn đáp án' : 'Kiểm tra đáp án'}
+          {showAnswers ? 'Hide answers' : 'Check answers'}
         </button>
       </div>
 
@@ -46,7 +46,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
           <h4 className="font-bold text-slate-700 flex items-center gap-2 mb-3">
             <Target size={18} className="text-pink-500" />
-            1. Nối từ với nghĩa tương ứng
+            1. Match the words with their meanings
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -61,7 +61,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
                 <div key={`def-${idx}`} className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Nhập số"
+                    placeholder="Enter #"
                     value={userInputs[`match-${idx}`] || ''}
                     onChange={(e) => handleInputChange(`match-${idx}`, e.target.value)}
                     className="w-16 text-center border-2 border-slate-200 rounded-lg focus:border-indigo-500 outline-none font-bold"
@@ -93,7 +93,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
           <h4 className="font-bold text-slate-700 flex items-center gap-2 mb-3">
             <Pen size={18} className="text-blue-500" />
-            2. Điền từ còn thiếu vào chỗ trống
+            2. Fill in the missing words
           </h4>
           <div className="space-y-4">
             {data.fillBlanks.map((q, idx) => (
@@ -136,7 +136,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
                 )}
                 {showAnswers && !isCorrect(`fill-${idx}`, q.answer) && (
                   <div className="ml-6 text-sm text-green-600 font-medium italic">
-                    Đáp án: {q.answer}
+                    Answer: {q.answer}
                   </div>
                 )}
               </div>
@@ -150,7 +150,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
           <h4 className="font-bold text-slate-700 flex items-center gap-2 mb-3">
             <Search size={18} className="text-rose-500" />
-            3. Tìm và sửa lỗi sai
+            3. Find and correct mistakes
           </h4>
           <div className="space-y-4">
             {data.mistakes.map((q, idx) => (
@@ -161,7 +161,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 ml-6">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-500 w-12">Lỗi sai:</span>
+                    <span className="text-xs font-bold text-slate-500 w-16">Mistake:</span>
                     <input
                       type="text"
                       value={userInputs[`mistake-wrong-${idx}`] || ''}
@@ -170,7 +170,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-500 w-12">Sửa lại:</span>
+                    <span className="text-xs font-bold text-slate-500 w-20">Correction:</span>
                     <input
                       type="text"
                       value={userInputs[`mistake-right-${idx}`] || ''}
@@ -181,7 +181,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
                 </div>
                 {showAnswers && (
                   <div className="mt-2 ml-6 text-sm text-green-700 font-medium bg-green-50 p-2 rounded border border-green-100">
-                    Đáp án: <span className="text-rose-600 line-through mr-2">{q.mistake}</span> {'->'} <span className="font-bold">{q.correction}</span>
+                    Answer: <span className="text-rose-600 line-through mr-2">{q.mistake}</span> {'->'} <span className="font-bold">{q.correction}</span>
                   </div>
                 )}
               </div>
@@ -195,7 +195,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
           <h4 className="font-bold text-slate-700 flex items-center gap-2 mb-3">
             <RefreshCw size={18} className="text-amber-500" />
-            4. Viết lại câu
+            4. Rewrite the sentences
           </h4>
           <div className="space-y-4">
             {data.rewrites.map((q, idx) => (
@@ -205,16 +205,16 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
                   {q.originalSentence}
                 </p>
                 <div className="ml-6 relative">
-                  <p className="text-xs text-slate-500 mb-1 italic">Gợi ý: {q.hint}</p>
+                  <p className="text-xs text-slate-500 mb-1 italic">Hint: {q.hint}</p>
                   <textarea
                     value={userInputs[`rewrite-${idx}`] || ''}
                     onChange={(e) => handleInputChange(`rewrite-${idx}`, e.target.value)}
                     className="w-full border-2 border-slate-200 rounded-lg p-2 text-sm focus:border-amber-400 outline-none min-h-[60px]"
-                    placeholder="Viết lại câu của bạn ở đây..."
+                    placeholder="Rewrite the sentence here..."
                   />
                   {showAnswers && (
                     <div className="mt-2 text-sm text-green-700 font-medium bg-green-50 p-2 rounded border border-green-100">
-                      Đáp án gợi ý: <span className="font-bold">{q.answer}</span>
+                      Suggested Answer: <span className="font-bold">{q.answer}</span>
                     </div>
                   )}
                 </div>
@@ -229,7 +229,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
           <h4 className="font-bold text-slate-700 flex items-center gap-2 mb-3">
             <MessageSquare size={18} className="text-purple-500" />
-            5. Trả lời câu hỏi
+            5. Answer the questions
           </h4>
           <div className="space-y-4">
             {data.questions.map((q, idx) => (
@@ -243,11 +243,11 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
                     value={userInputs[`question-${idx}`] || ''}
                     onChange={(e) => handleInputChange(`question-${idx}`, e.target.value)}
                     className="w-full border-2 border-slate-200 rounded-lg p-2 text-sm focus:border-purple-400 outline-none min-h-[60px]"
-                    placeholder="Câu trả lời của bạn..."
+                    placeholder="Your answer..."
                   />
                   {showAnswers && (
                     <div className="mt-2 text-sm text-green-700 font-medium bg-green-50 p-2 rounded border border-green-100">
-                      Đáp án gợi ý: <span className="font-bold">{q.suggestedAnswer}</span>
+                      Suggested Answer: <span className="font-bold">{q.suggestedAnswer}</span>
                     </div>
                   )}
                 </div>
@@ -262,22 +262,22 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
           <h4 className="font-bold text-slate-700 flex items-center gap-2 mb-3">
             <BookOpen size={18} className="text-teal-500" />
-            6. Viết tự luận (Essay)
+            6. Essay Writing
           </h4>
           <div className="space-y-3 ml-2">
             <div className="p-3 bg-teal-50 rounded-lg border border-teal-100">
-              <h5 className="font-bold text-teal-800 text-sm mb-1">Chủ đề:</h5>
+              <h5 className="font-bold text-teal-800 text-sm mb-1">Topic:</h5>
               <p className="text-sm text-teal-900 font-medium">{data.essay.topic}</p>
             </div>
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <h5 className="font-bold text-slate-700 text-xs mb-1 uppercase tracking-wider">Gợi ý làm bài:</h5>
+              <h5 className="font-bold text-slate-700 text-xs mb-1 uppercase tracking-wider">Guidance:</h5>
               <p className="text-sm text-slate-600 italic whitespace-pre-wrap">{data.essay.guidance}</p>
             </div>
             <textarea
               value={userInputs['essay'] || ''}
               onChange={(e) => handleInputChange('essay', e.target.value)}
               className="w-full border-2 border-slate-200 rounded-lg p-3 text-sm focus:border-teal-400 outline-none min-h-[150px]"
-              placeholder="Bắt đầu viết bài của bạn ở đây..."
+              placeholder="Start writing your essay here..."
             />
           </div>
         </div>

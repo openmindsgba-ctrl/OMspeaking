@@ -49,7 +49,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
       setTimeout(() => { if (link.parentNode) document.body.removeChild(link); }, 500);
     } catch (err) {
       console.error("Failed to download certificate", err);
-      setError("Không thể tải giấy chứng nhận. Vui lòng thử lại hoặc chụp màn hình.");
+      setError("Unable to download certificate. Please try again or take a screenshot.");
     } finally {
       setIsDownloading(false);
     }
@@ -122,7 +122,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
 
                 <div className="w-full flex justify-between items-end pt-8 sm:pt-12 px-4 sm:px-8">
                   <div className="text-left space-y-2">
-                    <p className="text-xs sm:text-sm font-black" style={{ color: '#1E3A8A' }}>{new Date().toLocaleDateString('vi-VN')}</p>
+                    <p className="text-xs sm:text-sm font-black" style={{ color: '#1E3A8A' }}>{new Date().toLocaleDateString('en-US')}</p>
                     <div className="w-32 sm:w-48" style={{ borderBottom: '2px solid #FECACA' }} />
                     <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest" style={{ color: '#1D4ED8' }}>Date of Issue</p>
                   </div>
@@ -136,12 +136,12 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             </div>
 
             <div className="p-4 sm:p-6 bg-gray-50 border-t border-gray-100 flex gap-4">
-              <button onClick={onClose} className="flex-1 py-3 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-100 transition-colors">Đóng</button>
+              <button onClick={onClose} className="flex-1 py-3 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-100 transition-colors">Close</button>
               <button onClick={downloadCertificate} disabled={isDownloading}
                 className="flex-[2] py-3 bg-brand-blue text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-800 transition-colors shadow-lg disabled:opacity-50"
               >
                 {isDownloading ? <RefreshCw size={20} className="animate-spin" /> : <Download size={20} />}
-                Tải Giấy Chứng Nhận (PNG)
+                Download Certificate (PNG)
               </button>
             </div>
           </motion.div>

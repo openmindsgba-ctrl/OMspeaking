@@ -147,8 +147,8 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
       </div>
 
       {/* Custom Audio Player Bar */}
-      {audioUrl && (
-        <div className="px-1 space-y-2">
+      <div className="px-1 space-y-2">
+        {audioUrl ? (
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Play/Pause Button */}
             <button onClick={togglePlay}
@@ -200,13 +200,24 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
                 borderColor: speed !== 1 ? '#c7d2fe' : '#e5e7eb',
                 color: speed !== 1 ? '#4f46e5' : '#6b7280'
               }}
-              title="Thay đổi tốc độ"
+              title="Change speed"
             >
               {speed}x
             </button>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePlayAudio}
+              disabled={isAudioLoading}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-brand-blue bg-blue-50 border border-blue-100 hover:bg-blue-100 transition-colors shadow-sm disabled:opacity-50"
+            >
+              {isAudioLoading ? <div className="w-4 h-4 border-2 border-brand-blue border-t-transparent rounded-full animate-spin" /> : <Volume2 size={14} />}
+              {isAudioLoading ? 'Loading AI Audio...' : 'Listen to AI Audio'}
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="text-sm sm:text-base font-medium text-slate-700 leading-loose mt-2">
         {parts.map((part, i) => {
@@ -263,14 +274,14 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
           onClick={checkAnswers}
           className="mt-4 px-6 py-3 bg-brand-blue hover:bg-brand-blue-dark text-white font-black rounded-xl uppercase tracking-widest transition-all self-center shadow-lg active:scale-95"
         >
-          Kiểm tra / Trả lời
+          Check Answers
         </button>
       ) : (
         <div className="mt-4 flex flex-col gap-4">
           <div className="flex items-center justify-between p-4 bg-blue-50 border-2 border-blue-100 rounded-xl">
             <h4 className="font-black text-blue-900 flex items-center gap-2">
               <Award size={20} className="text-blue-600" />
-              Điểm của bạn
+              Your Score
             </h4>
             <div className="text-2xl font-black text-blue-700">
               {scoreStr} <span className="text-base text-blue-400">/ 10</span>
@@ -282,7 +293,7 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
                <span className="text-xl">👩‍🏫</span>
             </div>
             <div>
-              <h4 className="font-black text-pink-700 text-sm mb-1">Nhận xét của Ms. Yến</h4>
+              <h4 className="font-black text-pink-700 text-sm mb-1">Feedback from Ms. Yen</h4>
               <p className="text-pink-900 font-medium text-sm">
                 {parseFloat(scoreStr) >= 9 ? "Tuyệt vời quá con yêu! Con làm rất xuất sắc, cô Yến rất tự hào về con! 🌟" :
                  parseFloat(scoreStr) >= 7 ? "Làm tốt lắm! Con hãy xem lại phần gợi ý để rút kinh nghiệm nhé, sắp hoàn hảo rồi! 👍" :
@@ -295,7 +306,7 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
             <div className="p-4 bg-slate-100 rounded-xl space-y-3 text-sm border border-slate-200">
               <h4 className="font-black text-slate-700 flex items-center gap-2">
                 <CheckCircle size={18} className="text-green-600" />
-                Gợi ý trả lời, Phiên âm & Dịch nghĩa
+                Suggested Answers, Pronunciation & Translation
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {answers?.map((ans, idx) => {
@@ -329,7 +340,7 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
               onClick={() => { setIsSubmitted(false); setUserInputs({}); }}
               className="mt-4 px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold rounded-lg transition-colors text-xs shadow-sm active:scale-95"
             >
-              Làm lại
+              Try Again
             </button>
           </div>
           

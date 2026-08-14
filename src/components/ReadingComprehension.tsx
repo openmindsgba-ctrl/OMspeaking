@@ -37,7 +37,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
 
   const startSpeechRecognition = (qIdx: number) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng sử dụng Chrome.');
+      alert("Your browser doesn't support speech recognition. Please use Chrome.");
       return;
     }
     
@@ -105,7 +105,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
       }));
     } catch (err) {
       console.error(err);
-      alert("Lỗi chấm điểm: " + (err as Error).message);
+      alert("Grading error: " + (err as Error).message);
     } finally {
       setLoadingMap(prev => ({ ...prev, [qIdx]: false }));
     }
@@ -123,7 +123,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
             READING COMPREHENSION
           </h2>
           <p className="text-sm text-slate-500 font-medium">
-            Ấn vào nút Micro và đọc to câu trả lời bằng tiếng Anh nhé!
+            Click the Microphone button and read your answer out loud in English!
           </p>
         </div>
 
@@ -144,7 +144,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
                     {/* Live transcript feedback for active mic */}
                     {activeMic === qIdx && transcript && (
                       <div className="mt-2 text-xs text-blue-600 font-medium italic bg-blue-50 p-2 rounded-lg border border-blue-100 shadow-inner">
-                        Bạn đang nói: "{transcript}"
+                        You are saying: "{transcript}"
                       </div>
                     )}
                   </div>
@@ -159,7 +159,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
                         ? 'bg-rose-50 border-rose-200 text-rose-500 animate-pulse'
                         : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-brand-blue hover:border-brand-blue hover:bg-blue-50'
                     }`}
-                    title="Trả lời bằng giọng nói"
+                    title="Answer by voice"
                   >
                     {isLoading ? <Loader2 size={18} className="animate-spin" /> : activeMic === qIdx ? <MicOff size={18} /> : <Mic size={18} />}
                   </button>
@@ -177,7 +177,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
                         <AlertCircle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
                       )}
                       <div>
-                        <div className="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Con đã trả lời:</div>
+                        <div className="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Em đã trả lời:</div>
                         <div className={`font-medium ${evaluation.isCorrect ? 'text-green-800' : 'text-orange-800'} italic`}>
                           "{evaluation.studentAnswer}"
                         </div>
@@ -189,7 +189,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
                         <MessageSquare className={`w-4 h-4 mt-0.5 shrink-0 ${evaluation.isCorrect ? 'text-green-600' : 'text-orange-500'}`} />
                         <div>
                           <span className={`text-xs font-black block mb-0.5 ${evaluation.isCorrect ? 'text-green-700' : 'text-orange-700'}`}>
-                            Ms. Yến nhận xét:
+                            Cô Yến nhận xét:
                           </span>
                           <span className={`text-sm ${evaluation.isCorrect ? 'text-green-900' : 'text-orange-900'} leading-relaxed block`}>
                             {evaluation.feedback}
@@ -209,30 +209,30 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
             <div className="bg-blue-50 border-2 border-blue-100 rounded-xl p-6 mb-6">
               <div className="flex items-center justify-center gap-3 text-brand-blue font-bold mb-4">
                 <Award className="w-6 h-6" />
-                <span className="uppercase tracking-wider">Kết quả bài làm</span>
+                <span className="uppercase tracking-wider">Your Result</span>
               </div>
               <div className="text-4xl font-black text-brand-blue-dark text-center mb-2">
                 {score}/10
               </div>
               <div className="text-center text-sm font-medium text-brand-blue/80">
-                (Đúng {correctCount}/{questions.length} câu)
+                (Correct {correctCount}/{questions.length})
               </div>
             </div>
 
             <div className="bg-pink-50 border-2 border-pink-100 rounded-xl p-6">
-              <div className="font-black text-pink-600 mb-4 uppercase tracking-wide">Tổng kết từ Ms. Yến:</div>
+              <div className="font-black text-pink-600 mb-4 uppercase tracking-wide">Feedback from Cô Yến:</div>
               {correctCount === questions.length ? (
-                <p className="text-pink-800 font-medium">Tuyệt vời! Con đã trả lời chính xác tất cả các câu hỏi! 🎉</p>
+                <p className="text-pink-800 font-medium">Tuyệt vời! Em đã trả lời chính xác tất cả các câu hỏi! 🎉</p>
               ) : (
                 <div className="text-pink-800 space-y-4 text-sm">
-                  <p className="font-bold">Khá lắm! Tuy nhiên con hãy xem lại đáp án gợi ý cho các câu chưa chính xác nhé:</p>
+                  <p className="font-bold">Khá lắm! Tuy nhiên em hãy xem lại đáp án gợi ý cho các câu chưa chính xác nhé:</p>
                   <div className="space-y-3">
                     {questions.map((q, idx) => {
                       const evalResult = evaluations[idx];
                       if (evalResult && !evalResult.isCorrect) {
                         return (
                           <div key={idx} className="bg-white/80 p-4 rounded-xl border border-pink-100 shadow-sm">
-                            <span className="font-black text-pink-700 block mb-1">Câu {idx + 1}:</span> 
+                            <span className="font-black text-pink-700 block mb-1">Question {idx + 1}:</span> 
                             <span className="text-slate-700 font-medium leading-relaxed">{q.suggestedAnswer}</span>
                           </div>
                         );
@@ -249,7 +249,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
                 onClick={() => setEvaluations({})}
                 className="w-full bg-slate-100 text-slate-700 font-black uppercase tracking-wider py-4 rounded-xl hover:bg-slate-200 transition-colors shadow-sm hover:shadow-md hover:-translate-y-0.5 border-2 border-slate-200"
               >
-                Làm lại từ đầu
+                Start Over
               </button>
             </div>
           </div>
