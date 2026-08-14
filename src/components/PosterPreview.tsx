@@ -1033,9 +1033,24 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
               </div>
             )}
             {/* Custom Audio Player */}
-            {audioUrl && (
+            {audioUrl ? (
               <div data-html2canvas-ignore className="mb-6">
                 <CustomAudioPlayer audioUrl={audioUrl} audioRef={audioRef} isPlaying={isPlaying} setIsPlaying={setIsPlaying} />
+              </div>
+            ) : (
+              <div data-html2canvas-ignore className="flex items-center justify-center gap-2 mb-6">
+                <button
+                  onClick={handlePlayAudio}
+                  disabled={isAudioLoading}
+                  className="flex items-center justify-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-[#0369a1] text-white rounded-xl shadow-lg border-2 border-[#075985] hover:bg-[#0284c7] transition-all font-bold group disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAudioLoading ? (
+                    <Loader2 size={24} className="animate-spin text-white" />
+                  ) : (
+                    <Volume2 size={24} className="text-white group-hover:scale-110 transition-transform" />
+                  )}
+                  {isAudioLoading ? 'Loading Audio...' : 'Listen to AI Audio'}
+                </button>
               </div>
             )}
             <div className="text-[11px] font-black uppercase tracking-[0.4em] mb-4 text-center" style={{ color: '#0369a1', opacity: 0.5 }}>READING PASSAGE</div>

@@ -304,6 +304,10 @@ export const generateContent = async (
     ? "The content MUST be professional, educational, and follow Cambridge curriculum styles. Create a cohesive reading passage."
     : '';
 
+  const grammarLanguageInstruction = ["Starters", "Movers", "Flyers"].includes(level)
+    ? "Bắt buộc giải thích bằng tiếng Việt một cách dễ hiểu nhất cho trẻ em."
+    : "MUST be written entirely in English.";
+
   const systemInstruction = `You are an expert English teacher.
   ${useInputInstructions}
   CRITICAL RULE: NEVER use asterisks (*) anywhere in your output. Do NOT use markdown bold (**word**) or any * character at all.
@@ -320,7 +324,7 @@ export const generateContent = async (
      - "ipa": phonetic transcription
      - "meaning": brief Vietnamese meaning
      - "emoji": a relevant emoji
-  9. "overallGrammar": Summarize the core grammar topic as a hierarchical Markdown list (using bullet points and indentation) to be displayed as a mindmap. Include: a brief and easy-to-understand explanation, formulas (if any), specific examples, and quick memory tips. MUST be written entirely in English.
+  9. "overallGrammar": Summarize the core grammar topic as a hierarchical Markdown list (using bullet points and indentation) to be displayed as a mindmap. Include: a brief and easy-to-understand explanation, formulas (if any), specific examples, and quick memory tips. ${grammarLanguageInstruction}
   10. "comprehensionQuestions": Sinh ra chính xác 10 câu hỏi đọc hiểu trắc nghiệm (multiple choice) dựa trên bài đọc 1. Mỗi câu có 4 lựa chọn A, B, C, D. Output dạng mảng các object: [{"question": "câu hỏi bằng tiếng Anh", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correctAnswer": "A", "suggestedAnswer": "giải thích ngắn gọn bằng tiếng Việt tại sao đáp án đúng"}]. Đảm bảo mỗi câu có ĐÚNG 4 options và correctAnswer là một trong A, B, C, D.
   11. "homework": Generate homework exercises related to the topic and grammar. Output exactly this JSON structure:
       "matching": { "items": [{"term": "english word", "definition": "vietnamese definition"}] } (5 items)
