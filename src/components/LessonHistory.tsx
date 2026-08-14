@@ -14,14 +14,14 @@ interface LessonHistoryProps {
 
 function timeAgo(timestamp: number): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 60) return 'Vừa xong';
+  if (seconds < 60) return 'Just now';
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes} phút trước`;
+  if (minutes < 60) return `${minutes} minutes ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} giờ trước`;
+  if (hours < 24) return `${hours} hours ago`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days} ngày trước`;
-  return new Date(timestamp).toLocaleDateString('vi-VN');
+  if (days < 7) return `${days} days ago`;
+  return new Date(timestamp).toLocaleDateString('en-US');
 }
 
 export const LessonHistory: React.FC<LessonHistoryProps> = ({
@@ -51,16 +51,16 @@ export const LessonHistory: React.FC<LessonHistoryProps> = ({
                   <Clock size={20} />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-brand-blue-dark uppercase tracking-wider">Lịch sử bài học</h3>
-                  <p className="text-[10px] text-slate-400 font-bold">{lessons.length} bài đã học</p>
+                  <h3 className="text-base font-black text-brand-blue-dark uppercase tracking-wider">Lesson History</h3>
+                  <p className="text-[10px] text-slate-400 font-bold">{lessons.length} lessons completed</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 {lessons.length > 0 && (
                   <button
-                    onClick={() => { if (window.confirm('Xóa toàn bộ lịch sử?')) onClearAll(); }}
+                    onClick={() => { if (window.confirm('Clear entire history?')) onClearAll(); }}
                     className="p-2 text-blue-400 hover:text-blue-600 hover:bg-red-50 rounded-lg transition-all"
-                    title="Xóa tất cả"
+                    title="Clear all"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -79,8 +79,8 @@ export const LessonHistory: React.FC<LessonHistoryProps> = ({
                     <BookOpen size={36} className="text-slate-300" />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-500">Chưa có bài học nào</p>
-                    <p className="text-sm text-slate-400 mt-1">Tạo bài học mới để bắt đầu!</p>
+                    <p className="font-bold text-slate-500">No lessons yet</p>
+                    <p className="text-sm text-slate-400 mt-1">Create a new lesson to get started!</p>
                   </div>
                 </div>
               ) : (
@@ -126,7 +126,7 @@ export const LessonHistory: React.FC<LessonHistoryProps> = ({
                               <Star size={10} fill="currentColor" /> {lesson.score}/10
                             </span>
                           )}
-                          <span className="text-[10px] text-slate-300 font-medium">{lesson.vocabulary?.length || 0} từ</span>
+                          <span className="text-[10px] text-slate-300 font-medium">{lesson.vocabulary?.length || 0} words</span>
                         </div>
                       </div>
                     </div>
@@ -137,7 +137,7 @@ export const LessonHistory: React.FC<LessonHistoryProps> = ({
                         onClick={(e) => { e.stopPropagation(); onRemoveLesson(lesson.id); }}
                         className="flex items-center gap-1 px-2 py-1 text-blue-400 hover:text-blue-600 hover:bg-red-50 rounded-lg text-[10px] font-bold transition-all"
                       >
-                        <Trash2 size={12} /> Xóa
+                        <Trash2 size={12} /> Delete
                       </button>
                     </div>
                   </motion.div>

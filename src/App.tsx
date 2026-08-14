@@ -97,7 +97,7 @@ export default function App() {
 
   const handleGenerate = useCallback(async () => {
     if (!topic && !imagePreview) {
-      setError("Vui lòng nhập chủ đề hoặc tải ảnh lên.");
+      setError("Please enter a topic or upload an image.");
       return;
     }
 
@@ -184,29 +184,29 @@ export default function App() {
       console.error(err);
       const errorMessage = err?.message || String(err);
       if (errorMessage === "QUOTA_EXCEEDED") {
-        setError("Bạn đã hết hạn mức sử dụng (Quota) của API Key này. Vui lòng nhấn vào nút 'Cài đặt API Key' để đổi key mới hoặc thử lại sau.");
+        setError("You have exceeded the usage quota for this API Key. Please click on 'API Key Settings' to change the key or try again later.");
       } else if (errorMessage === "INVALID_KEY") {
-        setError("API Key không hợp lệ hoặc đã bị vô hiệu hóa. Vui lòng kiểm tra lại trong phần 'Cài đặt API Key'.");
+        setError("Invalid or disabled API Key. Please check in 'API Key Settings'.");
       } else if (errorMessage.includes("safety") || errorMessage.includes("Safety")) {
-        setError("Nội dung hoặc hình ảnh bị chặn bởi bộ lọc an toàn. Vui lòng thử chủ đề khác.");
+        setError("Content or image blocked by safety filter. Please try another topic.");
       } else if (errorMessage.includes("parsing") || errorMessage.includes("parse")) {
-        setError("Lỗi xử lý dữ liệu từ AI. Vui lòng thử lại.");
+        setError("Error processing data from AI. Please try again.");
       } else {
         let treatedAsQuota = false;
         try {
           const parsedError = JSON.parse(errorMessage);
           if (parsedError?.error?.code === 429 || parsedError?.status === 429) {
-            setError("Bạn đã hết hạn mức sử dụng (Quota). Vui lòng nhấn vào nút 'Cài đặt API Key' để đổi key mới.");
+            setError("You have exceeded the usage quota. Please click on 'API Key Settings' to change the key.");
             treatedAsQuota = true;
           }
         } catch (e) { 
           if (errorMessage.includes('"code":429') || errorMessage.includes('"code": 429')) {
-            setError("Bạn đã hết hạn mức sử dụng (Quota). Vui lòng nhấn vào nút 'Cài đặt API Key' để đổi key mới.");
+            setError("You have exceeded the usage quota. Please click on 'API Key Settings' to change the key.");
             treatedAsQuota = true;
           }
         }
         if (!treatedAsQuota) {
-          setError(`Lỗi: ${errorMessage.substring(0, 100)}${errorMessage.length > 100 ? '...' : ''}. (Vui lòng thử lại hoặc kiểm tra kết nối mạng)`);
+          setError(`Error: ${errorMessage.substring(0, 100)}${errorMessage.length > 100 ? '...' : ''}. (Please try again or check your network connection)`);
         }
       }
       audioPlayer.setIsAudioLoading(false);
@@ -328,9 +328,9 @@ export default function App() {
       console.error("Critical: Failed to download poster", err);
       const msg = err?.message || "";
       if (msg.includes("tainted") || msg.includes("CORS") || msg.includes("insecure") || msg.includes("toDataURL")) {
-        setError("Lỗi bản quyền hình ảnh (CORS). Vui lòng thử lại hoặc chụp màn hình kết quả.");
+        setError("Image copyright error (CORS). Please try again or take a screenshot of the results.");
       } else {
-        setError("Không thể tải poster tự động. Bạn vui lòng chụp màn hình hoặc thử lại nhé.");
+        setError("Cannot download the poster automatically. Please take a screenshot or try again.");
       }
     } finally {
       // 4. Restore original image sources
@@ -393,9 +393,9 @@ export default function App() {
           
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 bg-slate-100/50 p-2 rounded-2xl border border-slate-200">
             {([
-              { mode: "generate" as ContentMode, icon: "💡", label: "Chủ đề" },
-              { mode: "image" as ContentMode, icon: "🖼️", label: "Hình ảnh" },
-              { mode: "useInput" as ContentMode, icon: "📝", label: "Văn bản" },
+              { mode: "generate" as ContentMode, icon: "💡", label: "Topic" },
+              { mode: "image" as ContentMode, icon: "🖼️", label: "Image" },
+              { mode: "useInput" as ContentMode, icon: "📝", label: "Text" },
             ]).map(({ mode, icon, label }) => (
               <button key={mode} onClick={() => setContentMode(mode)}
                 className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold transition-all text-sm sm:text-base
@@ -409,7 +409,7 @@ export default function App() {
             <button onClick={() => setShowHistory(true)}
               className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold transition-all text-sm sm:text-base text-slate-600 hover:bg-slate-200 relative"
             >
-              <Clock size={16} /> Lịch sử
+              <Clock size={16} /> History
               {lessonHistory.lessons.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand-blue text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-sm">
                   {lessonHistory.lessons.length}
@@ -449,10 +449,10 @@ export default function App() {
               {/* Preview Header */}
               <div className="p-3 sm:p-5 border-b-4 border-red-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-blue-50/30">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1">Nội dung học tập siêu hấp dẫn</span>
+                  <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1">Super engaging learning content</span>
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-brand-blue rounded-full flex items-center justify-center text-white shadow-sm"><ImageIcon size={16} /></div>
-                    <span className="text-xs sm:text-sm font-black text-brand-blue-dark uppercase tracking-widest">Góc Học Tập Của Học sinh</span>
+                    <span className="text-xs sm:text-sm font-black text-brand-blue-dark uppercase tracking-widest">Student's Learning Corner</span>
                     {readingText && <span className="px-3 py-1 bg-red-200 text-blue-900 text-[10px] font-black rounded-full shadow-sm uppercase">{level}</span>}
                   </div>
                 </div>
@@ -462,7 +462,7 @@ export default function App() {
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm
                         ${showTranslation ? 'bg-brand-blue text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                     >
-                      <Languages size={14} /> {showTranslation ? 'Ẩn dịch' : 'Hiện dịch'}
+                      <Languages size={14} /> {showTranslation ? 'Hide translation' : 'Show translation'}
                     </button>
                   )}
                   {readingText && (
@@ -471,7 +471,7 @@ export default function App() {
                         ${isDownloading ? 'bg-blue-400 cursor-not-allowed' : 'bg-brand-blue hover:bg-blue-800 shadow-blue-100'}`}
                     >
                       {isDownloading ? <RefreshCw className="animate-spin" size={14} /> : <Download size={14} />}
-                      {isDownloading ? 'Đang xử lý...' : 'Tải Poster'}
+                      {isDownloading ? 'Processing...' : 'Download Poster'}
                     </button>
                   )}
                 </div>
@@ -486,7 +486,7 @@ export default function App() {
                         <div className="w-20 h-20 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
                         <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-indigo-600" size={24} />
                       </div>
-                      <p className="text-gray-500 font-medium animate-pulse text-center px-4">Gemini đang soạn bài đọc cho bạn...</p>
+                      <p className="text-gray-500 font-medium animate-pulse text-center px-4">Gemini is preparing the lesson for you...</p>
                     </motion.div>
                   ) : readingText ? (
                     <motion.div key="result" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full flex flex-col items-center gap-4">
@@ -539,8 +539,8 @@ export default function App() {
                         <div className="w-full max-w-[800px] p-6 bg-amber-50/75 rounded-2xl border-2 border-dashed border-amber-200 flex flex-col items-center justify-center text-center space-y-3 mt-8">
                           <span className="text-2xl">📝</span>
                           <div>
-                            <h4 className="font-bold text-amber-900 text-sm sm:text-base">Bài học chưa có phần bài tập</h4>
-                            <p className="text-xs text-amber-700/80 mt-1 max-w-md">Do kết nối mạng hoặc quá tải hệ thống từ Google. Bạn hãy nhấn nút dưới đây để tạo bài tập ngay nhé!</p>
+                            <h4 className="font-bold text-amber-900 text-sm sm:text-base">Lesson has no exercises yet</h4>
+                            <p className="text-xs text-amber-700/80 mt-1 max-w-md">Due to network connection or system overload from Google. Please click the button below to generate exercises now!</p>
                           </div>
                           <button
                             type="button"
@@ -557,7 +557,7 @@ export default function App() {
                                 }
                               } catch (err: any) {
                                 console.error(err);
-                                setError("Không thể tạo bài tập lúc này. Vui lòng kiểm tra lại khóa API và thử lại sau.");
+                                setError("Cannot generate exercises at this time. Please check your API key and try again later.");
                               } finally {
                                 setIsGenerating(false);
                               }
@@ -566,7 +566,7 @@ export default function App() {
                             className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 active:scale-95 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all"
                           >
                             <RefreshCw className={isGenerating ? "animate-spin" : ""} size={14} />
-                            Tạo phần bài tập
+                            Generate Exercises
                           </button>
                         </div>
                       ) : (
@@ -601,8 +601,8 @@ export default function App() {
                     <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-4 max-w-xs">
                       <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-gray-300"><ImageIcon size={40} /></div>
                       <div className="space-y-2">
-                        <h3 className="font-bold text-gray-700">Chưa có Poster nào</h3>
-                        <p className="text-sm text-gray-400">Chọn trình độ, nhập chủ đề và nhấn nút tạo để bắt đầu!</p>
+                        <h3 className="font-bold text-gray-700">No Posters yet</h3>
+                        <p className="text-sm text-gray-400">Select a level, enter a topic, and click the button to get started!</p>
                       </div>
                     </motion.div>
                   )}

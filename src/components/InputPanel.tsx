@@ -56,9 +56,9 @@ export const InputPanel: React.FC<InputPanelProps> = (props) => {
         <div className="relative z-10 space-y-6">
           <div>
             <label className="flex items-center gap-2 text-sm font-black text-brand-blue mb-3 uppercase tracking-wider">
-              {contentMode === "generate" && <><Type size={18} className="text-brand-blue" /> Chủ đề và Ngữ pháp</>}
-              {contentMode === "image" && <><ImageIcon size={18} className="text-brand-blue" /> Tải ảnh lên</>}
-              {contentMode === "useInput" && <><FileText size={18} className="text-brand-blue" /> Văn bản bài đọc</>}
+              {contentMode === "generate" && <><Type size={18} className="text-brand-blue" /> Topic and Grammar</>}
+              {contentMode === "image" && <><ImageIcon size={18} className="text-brand-blue" /> Upload Image</>}
+              {contentMode === "useInput" && <><FileText size={18} className="text-brand-blue" /> Reading Text</>}
             </label>
 
             {contentMode === "image" ? (
@@ -83,7 +83,7 @@ export const InputPanel: React.FC<InputPanelProps> = (props) => {
                 <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-red-200">
                   <img src={imagePreview} alt="Small preview" className="w-full h-full object-cover" />
                 </div>
-                <span className="text-[10px] font-black text-blue-800 uppercase truncate">Hình ảnh đã sẵn sàng</span>
+                <span className="text-[10px] font-black text-blue-800 uppercase truncate">Image is ready</span>
                 <button onClick={() => setImagePreview(null)} className="ml-auto p-1.5 text-blue-600 hover:text-blue-500 hover:bg-white rounded-lg transition-all">
                   <X size={14} />
                 </button>
@@ -92,7 +92,7 @@ export const InputPanel: React.FC<InputPanelProps> = (props) => {
             {contentMode === "useInput" && (
               <div className="mt-2 flex justify-end">
                 <button onClick={() => docFileInputRef.current?.click()} className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-[10px] font-black hover:bg-red-200 transition-colors uppercase tracking-wider">
-                  <FileText size={14} /> Tải file (PDF, DOCX, TXT, Ảnh)
+                  <FileText size={14} /> Upload File (PDF, DOCX, TXT, Image)
                 </button>
                 <input type="file" ref={docFileInputRef} onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); }} accept=".pdf,.docx,.txt,image/*" className="hidden" />
               </div>
@@ -102,7 +102,7 @@ export const InputPanel: React.FC<InputPanelProps> = (props) => {
           {/* Level Selector */}
           <div>
             <label className="flex items-center gap-2 text-sm font-black text-brand-blue mb-3 uppercase tracking-wider">
-              <GraduationCap size={18} className="text-blue-400" /> Trình độ Tiếng Anh
+              <GraduationCap size={18} className="text-blue-400" /> English Level
             </label>
             <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
               {LEVELS.map((lvl) => (
@@ -121,7 +121,7 @@ export const InputPanel: React.FC<InputPanelProps> = (props) => {
             className={`w-full py-3.5 sm:py-4 rounded-2xl font-black text-white shadow-xl transition-all flex items-center justify-center gap-2 text-base sm:text-lg
               ${isGenerating ? 'bg-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-brand-blue hover:from-blue-700 hover:to-blue-900 active:scale-[0.98] shadow-blue-100'}`}
           >
-            {isGenerating ? <><RefreshCw className="animate-spin" size={24} /> Đang chuẩn bị...</> : <><Sparkles size={24} className="animate-pulse" /> Bắt đầu học ngay!</>}
+            {isGenerating ? <><RefreshCw className="animate-spin" size={24} /> Preparing...</> : <><Sparkles size={24} className="animate-pulse" /> Start Learning Now!</>}
           </button>
 
           {/* Error with Retry */}
@@ -134,11 +134,11 @@ export const InputPanel: React.FC<InputPanelProps> = (props) => {
               <div className="flex flex-wrap gap-2">
                 {isQuotaOrKeyError && (
                   <button onClick={onOpenApiKeyModal} className="flex items-center gap-1.5 px-3 py-2 bg-blue-100 hover:bg-red-200 text-blue-700 rounded-xl text-xs font-black transition-colors">
-                    🔑 Đổi API Key
+                    🔑 Change API Key
                   </button>
                 )}
                 <button onClick={onRetry} className="flex items-center gap-1.5 px-3 py-2 bg-blue-100 hover:bg-red-200 text-blue-700 rounded-xl text-xs font-black transition-colors">
-                  🔄 Thử lại
+                  🔄 Retry
                 </button>
               </div>
             </div>
@@ -166,8 +166,8 @@ const ImageUploadArea: React.FC<any> = ({ imagePreview, isDragging, imageInputRe
       <>
         <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-blue-400 shadow-sm border border-blue-100"><Upload size={32} /></div>
         <div className="text-center">
-          <p className="font-black text-blue-800 uppercase text-sm tracking-wide">Nhấn để chọn ảnh</p>
-          <p className="text-[10px] text-blue-600 font-bold uppercase mt-1">Hoặc kéo thả ảnh vào đây</p>
+          <p className="font-black text-blue-800 uppercase text-sm tracking-wide">Click to select image</p>
+          <p className="text-[10px] text-blue-600 font-bold uppercase mt-1">Or drag and drop image here</p>
         </div>
       </>
     )}
@@ -178,25 +178,25 @@ const ImageUploadArea: React.FC<any> = ({ imagePreview, isDragging, imageInputRe
 const TextInputArea: React.FC<any> = ({ topic, setTopic, grammarTopic, setGrammarTopic, contentMode, isDragging, isProcessingFile, handleDragOver, handleDragLeave, handleDrop, handlePaste }) => (
   <div className={`relative transition-all duration-200 ${isDragging ? 'scale-[1.02]' : ''}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
     <textarea value={topic} onChange={(e) => setTopic(e.target.value)} onPaste={handlePaste}
-      placeholder={contentMode === "generate" ? "Ví dụ: Công viên, Bãi biển, Các bạn nhỏ đang chơi đùa..." : "Dán văn bản tiếng Anh của bạn vào đây, hoặc kéo thả file PDF, DOCX, TXT, Ảnh vào đây..."}
+      placeholder={contentMode === "generate" ? "Example: Park, Beach, Kids playing..." : "Paste your English text here, or drag and drop a PDF, DOCX, TXT, Image file here..."}
       className={`w-full h-36 sm:h-40 p-4 bg-blue-50/30 border-2 rounded-2xl focus:ring-4 focus:ring-brand-blue/20 focus:border-brand-blue transition-all resize-none text-slate-900 placeholder:text-slate-400 font-semibold text-sm sm:text-base
         ${isDragging ? 'border-brand-blue bg-blue-50' : 'border-slate-100'}`}
     />
     {contentMode === "generate" && (
       <input type="text" value={grammarTopic} onChange={(e) => setGrammarTopic(e.target.value)}
-        placeholder="Chủ đề ngữ pháp (VD: Thì hiện tại đơn, quá khứ tiếp diễn...)"
+        placeholder="Grammar topic (E.g.: Simple Present, Past Continuous...)"
         className={`w-full mt-3 p-3 bg-blue-50/30 border-2 rounded-2xl focus:ring-4 focus:ring-brand-blue/20 focus:border-brand-blue transition-all text-slate-900 placeholder:text-slate-400 font-semibold text-sm sm:text-base border-slate-100`}
       />
     )}
     {isProcessingFile && (
       <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] rounded-2xl flex items-center justify-center gap-2 text-blue-800 font-bold animate-pulse">
-        <RefreshCw className="animate-spin" size={16} /> Đang xử lý file...
+        <RefreshCw className="animate-spin" size={16} /> Processing file...
       </div>
     )}
     {isDragging && (
       <div className="absolute inset-0 border-4 border-dashed border-blue-400 bg-blue-50/30 rounded-2xl flex flex-col items-center justify-center gap-2 pointer-events-none">
         <Upload size={32} className="text-blue-600 animate-bounce" />
-        <span className="font-black text-blue-700 uppercase">Thả file vào đây</span>
+        <span className="font-black text-blue-700 uppercase">Drop file here</span>
       </div>
     )}
   </div>

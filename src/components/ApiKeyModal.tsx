@@ -64,8 +64,8 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ show, currentApiKey, o
                   <Settings size={28} className="text-white opacity-90" />
                 </div>
                 <div>
-                  <h2 className="text-xl sm:text-[22px] font-black tracking-tight leading-tight mb-1 font-serif">Thiết lập API Key</h2>
-                  <p className="text-blue-100 text-sm font-bold opacity-90">Cấu hình Model & API Key Gemini</p>
+                  <h2 className="text-xl sm:text-[22px] font-black tracking-tight leading-tight mb-1 font-serif">API Key Settings</h2>
+                  <p className="text-blue-100 text-sm font-bold opacity-90">Configure Gemini Model & API Key</p>
                 </div>
               </div>
             </div>
@@ -78,11 +78,11 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ show, currentApiKey, o
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-700 flex flex-wrap items-center gap-2">
                     <span>🔑 API Key</span>
-                    <span className="text-red-500 text-xs font-black">*Bắt buộc</span>
+                    <span className="text-red-500 text-xs font-black">*Required</span>
                   </label>
                   <input 
                     type="password"
-                    placeholder="Dán API Key vào đây (AIza...)"
+                    placeholder="Paste your API Key here (AIza...)"
                     value={localKey}
                     onChange={(e) => setLocalKey(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
@@ -94,14 +94,14 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ show, currentApiKey, o
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-red-500 hover:text-red-600 font-bold text-sm decoration-2 hover:underline underline-offset-4 transition-all pt-1"
                   >
-                    🔗 Lấy API Key miễn phí tại Google AI Studio <ExternalLink size={14} className="opacity-70" />
+                    🔗 Get a free API Key at Google AI Studio <ExternalLink size={14} className="opacity-70" />
                   </a>
                 </div>
 
                 {/* Model Selection Section */}
                 <div className="space-y-3 pt-2">
                   <label className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-3">
-                    🤖 Chọn Model AI
+                    🤖 Select AI Model
                   </label>
                   
                   <div className="space-y-2.5">
@@ -131,7 +131,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ show, currentApiKey, o
                           </div>
                           {model.isDefault && (
                             <span className="text-[10px] font-black text-blue-600 bg-blue-100 px-2 py-1 rounded-md uppercase tracking-wider">
-                              Mặc định
+                              Default
                             </span>
                           )}
                         </div>
@@ -146,7 +146,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ show, currentApiKey, o
                     disabled={!localKey.trim()}
                     className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md shadow-blue-600/20 transition-all active:scale-[0.98] mt-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    Bắt đầu học ngay!
+                    Start Learning Now!
                   </button>
                   
                   {(currentApiKey || hasEnvKey) && (
@@ -154,7 +154,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ show, currentApiKey, o
                       onClick={onClose}
                       className="w-full py-3 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors rounded-xl hover:bg-slate-50"
                     >
-                      Đóng
+                      Close
                     </button>
                   )}
                 </div>

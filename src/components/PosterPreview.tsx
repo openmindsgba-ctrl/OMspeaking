@@ -94,7 +94,7 @@ const evaluateCEFR = (spokenText: string, originalText: string): CEFRResult => {
       ],
       overallScore: 0,
       cefrLevel: 'Pre-A1',
-      overallComment: 'Bạn chưa đọc từ nào, hãy nhấn thu âm và đọc to rõ ràng nhé!',
+      overallComment: 'Em chưa đọc từ nào, hãy nhấn thu âm và đọc to rõ ràng nhé!',
       missedWords: [],
       extraWords: [],
     };
@@ -195,15 +195,15 @@ const evaluateCEFR = (spokenText: string, originalText: string): CEFRResult => {
 
   let overallComment = '';
   if (overallScore >= 9) {
-    overallComment = 'Thật xuất sắc! Cô đánh giá rất cao độ hoàn thiện trong bài đọc của con. Con đã phát âm tròn vành rõ chữ, ngữ điệu tự nhiên và đọc đầy đủ nội dung bài. Hãy tiếp tục duy trì phong độ tuyệt vời này nhé! 🌟';
+    overallComment = 'Thật xuất sắc! Cô Yến đánh giá rất cao độ hoàn thiện trong bài đọc của em. Em đã phát âm tròn vành rõ chữ, ngữ điệu tự nhiên và đọc đầy đủ nội dung bài. Hãy tiếp tục duy trì phong độ tuyệt vời này nhé! 🌟';
   } else if (overallScore >= 7) {
-    overallComment = 'Bài đọc của con đạt mức khá giỏi. Con đã đọc được phần lớn số từ với phát âm tương đối chuẩn. Để hoàn hảo hơn, con hãy chú ý mở khẩu hình ở các âm đuôi (ending sounds) và đảm bảo không lướt qua hay bỏ sót chữ nào nhé. 👏';
+    overallComment = 'Bài đọc của em đạt mức khá giỏi. Em đã đọc được phần lớn số từ với phát âm tương đối chuẩn. Để hoàn hảo hơn, em hãy chú ý mở khẩu hình ở các âm đuôi (ending sounds) và đảm bảo không lướt qua hay bỏ sót chữ nào nhé. 👏';
   } else if (overallScore >= 5) {
-    overallComment = 'Con đã có một sự nỗ lực đáng ghi nhận. Tuy nhiên, độ bao phủ từ vựng và sự rõ ràng trong phát âm vẫn cần được cải thiện. Cô khuyên con nên chia nhỏ bài đọc, nghe kỹ audio gốc và lặp lại từng cụm từ để không bị rớt chữ. 💪';
+    overallComment = 'Em đã có một sự nỗ lực đáng ghi nhận. Tuy nhiên, độ bao phủ từ vựng và sự rõ ràng trong phát âm vẫn cần được cải thiện. Cô Yến khuyên em nên chia nhỏ bài đọc, nghe kỹ audio gốc và lặp lại từng cụm từ để không bị rớt chữ. 💪';
   } else if (overallScore >= 3) {
-    overallComment = 'Cô thấy con đang gặp chút khó khăn. Số từ con bỏ sót khá nhiều và nhiều âm tiết chưa rõ, khiến nội dung bị gián đoạn. Không sao cả! Con hãy nghe lại audio mẫu thêm vài lần, sau đó đọc thật chậm rãi từng từ một trước khi ghép thành câu nhé. 📚';
+    overallComment = 'Cô Yến thấy em đang gặp chút khó khăn. Số từ em bỏ sót khá nhiều và nhiều âm tiết chưa rõ, khiến nội dung bị gián đoạn. Không sao cả! Em hãy nghe lại audio mẫu thêm vài lần, sau đó đọc thật chậm rãi từng từ một trước khi ghép thành câu nhé. 📚';
   } else {
-    overallComment = 'Bài đọc này đang hơi quá sức vì tỷ lệ hoàn thiện từ và độ chuẩn xác âm của con còn thấp. Con hãy tạm dừng việc đọc cả bài, bắt đầu lại bằng cách nghe audio mẫu và luyện tập thật kỹ từng câu ngắn. Cô tin với sự kiên trì, con sẽ tiến bộ! ❤️';
+    overallComment = 'Bài đọc này đang hơi quá sức vì tỷ lệ hoàn thiện từ và độ chuẩn xác âm của em còn thấp. Em hãy tạm dừng việc đọc cả bài, bắt đầu lại bằng cách nghe audio mẫu và luyện tập thật kỹ từng câu ngắn. Cô Yến tin với sự kiên trì, em sẽ tiến bộ! ❤️';
   }
 
   return { criteria, overallScore, cefrLevel, overallComment, missedWords: missedWords.slice(0, 10), extraWords: extraWords.slice(0, 5) };
@@ -281,13 +281,9 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
     if (!isRecording && transcript && originalText) {
       const coverage = calculateCoverage(transcript, originalText);
       setCoveragePercent(coverage);
-      if (coverage < MIN_COVERAGE) {
-        setInsufficientCoverage(true);
-        setResult(null);
-      } else {
-        setInsufficientCoverage(false);
-        setResult(evaluateCEFR(transcript, originalText));
-      }
+      // Removed the MIN_COVERAGE check as per new requirements
+      setInsufficientCoverage(false);
+      setResult(evaluateCEFR(transcript, originalText));
     }
   }, [isRecording, transcript, originalText]);
 
@@ -300,10 +296,10 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
   return (
     <div className="mt-6 p-4 sm:p-6 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-col items-center" data-html2canvas-ignore>
       <div className="text-center mb-4">
-        <h4 className="text-sm sm:text-base font-black text-indigo-800 uppercase tracking-wide">🎤 Luyện Đọc & Chấm Điểm Speaking</h4>
-        <p className="text-xs text-indigo-600/70 mt-1">Đánh giá theo Khung tham chiếu Châu Âu (CEFR) — Thang điểm 10</p>
-        <p className="text-[10px] text-rose-500 font-bold mt-1.5 bg-rose-50 px-3 py-1 rounded-full inline-block border border-rose-200">
-          ⚠️ Bạn phải đọc đúng và đọc hết toàn bộ bài mới được chấm điểm
+        <h4 className="text-sm sm:text-base font-black text-indigo-800 uppercase tracking-wide">🎤 Reading & Speaking Evaluation</h4>
+        <p className="text-xs text-indigo-600/70 mt-1">Evaluated based on CEFR — Max Score 10</p>
+        <p className="text-[10px] text-indigo-500 font-bold mt-1.5 bg-indigo-50 px-3 py-1 rounded-full inline-block border border-indigo-200">
+          💡 You will be scored based on how much you read.
         </p>
       </div>
 
@@ -318,7 +314,7 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
         {isRecording ? <MicOff size={28} /> : <Mic size={28} />}
       </button>
       <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mt-2">
-        {isRecording ? '🔴 Đang thu âm...' : 'Nhấn để thu âm'}
+        {isRecording ? '🔴 Recording...' : 'Tap to Record'}
       </p>
 
       {isRecording && (
@@ -331,13 +327,13 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
               <div className="w-1 h-5 bg-rose-500 rounded-full animate-bounce" style={{ animationDelay: '100ms' }}></div>
               <div className="w-1 h-3 bg-rose-400 rounded-full animate-bounce" style={{ animationDelay: '250ms' }}></div>
             </div>
-            Hãy đọc to toàn bộ bài văn!
+            Read aloud clearly!
           </div>
           <div className="bg-white rounded-xl p-3 border border-indigo-100 shadow-sm">
             <div className="flex items-center justify-between text-[10px] font-bold mb-1.5">
-              <span className="text-slate-500">📊 Tiến độ đọc bài</span>
-              <span className={coveragePercent >= MIN_COVERAGE ? 'text-emerald-600' : 'text-slate-500'}>
-                {coveragePercent}% {coveragePercent >= MIN_COVERAGE ? '✅' : `(cần ≥${MIN_COVERAGE}%)`}
+              <span className="text-slate-500">📊 Reading Progress</span>
+              <span className="text-emerald-600">
+                {coveragePercent}%
               </span>
             </div>
             <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
@@ -351,14 +347,11 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
       {!isRecording && transcript && (
         <div className="mt-3 w-full bg-white rounded-xl p-3 border border-indigo-100 shadow-sm">
           <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-            <span className="text-slate-600">📊 Độ bao phủ bài đọc</span>
-            <span className={`font-black ${coveragePercent >= MIN_COVERAGE ? 'text-emerald-600' : 'text-rose-600'}`}>{coveragePercent}%</span>
+            <span className="text-slate-600">📊 Reading Coverage</span>
+            <span className="font-black text-emerald-600">{coveragePercent}%</span>
           </div>
           <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all duration-500 ${getCoverageBarColor(coveragePercent)}`} style={{ width: `${Math.min(100, coveragePercent)}%` }} />
-          </div>
-          <div className="relative mt-0.5">
-            <div className="absolute text-[9px] font-bold text-slate-400" style={{ left: `${MIN_COVERAGE}%`, transform: 'translateX(-50%)' }}>↑ {MIN_COVERAGE}%</div>
           </div>
         </div>
       )}
@@ -399,7 +392,7 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
               <div className="flex-1 text-center sm:text-left">
                 <div className="text-3xl font-black text-slate-800">{result.overallScore}<span className="text-lg text-slate-400">/10</span></div>
                 <p className="text-xs font-bold text-indigo-600 mt-0.5">{getCEFRDescription(result.cefrLevel)}</p>
-                <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wide font-bold">Điểm tổng hợp Speaking</p>
+                <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wide font-bold">Overall Speaking Score</p>
               </div>
             </div>
           </div>
@@ -408,7 +401,7 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
             onClick={() => setShowDetails(!showDetails)}
             className="w-full flex items-center justify-between px-4 py-2.5 bg-white rounded-xl border border-slate-200 hover:bg-slate-50 transition-all text-sm font-bold text-slate-600"
           >
-            <span>📊 Chi tiết đánh giá từng tiêu chí</span>
+            <span>📊 Detailed Criteria Breakdown</span>
             <span className={`transition-transform duration-300 ${showDetails ? 'rotate-180' : ''}`}>▼</span>
           </button>
 
@@ -441,7 +434,7 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
           {result.missedWords.length > 0 && (
             <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 shadow-sm">
               <h5 className="text-xs font-black text-amber-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                ⚠️ Các từ chưa đọc được ({result.missedWords.length} từ)
+                ⚠️ Unread Words ({result.missedWords.length} words)
               </h5>
               <div className="flex flex-wrap gap-1.5">
                 {result.missedWords.map((w, i) => (
@@ -467,7 +460,7 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
             onClick={() => { setTranscript(''); setResult(null); setCoveragePercent(0); }}
             className="w-full py-3 bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-700 font-black rounded-xl transition-all text-sm shadow-sm active:scale-[0.98] uppercase tracking-wider"
           >
-            🔄 Đọc lại
+            🔄 Try Again
           </button>
         </div>
       )}
@@ -531,7 +524,7 @@ const parseMarkdownToTree = (md: string): MindMapNode[] => {
   });
 
   if (rootNodes.length === 0) {
-    return [{ label: "Ngữ pháp", children: [{ label: md, children: [] }] }];
+    return [{ label: "Grammar", children: [{ label: md, children: [] }] }];
   }
   return rootNodes;
 };
@@ -661,7 +654,7 @@ const parseGrammarBlocks = (md: string): GrammarBlock[] => {
   // Fallback: if no blocks were parsed, create a single block from the text
   if (blocks.length === 0 && md.trim()) {
     blocks.push({
-      title: 'Ngữ pháp trọng tâm',
+      title: 'Key Grammar',
       explanation: md.replace(/\*\*/g, '').replace(/^-\s*/gm, ''),
       formula: null,
       examples: [],
@@ -693,7 +686,7 @@ const GrammarDetailSection: React.FC<{ grammarText: string }> = ({ grammarText }
         </div>
         <div>
           <h3 className="text-base font-black uppercase tracking-widest" style={{ color: '#4338ca' }}>
-            Tóm Tắt Ngữ Pháp
+            Grammar Summary
           </h3>
           <p className="text-[10px] text-slate-400 font-medium">Grammar Summary & Examples</p>
         </div>
@@ -732,7 +725,7 @@ const GrammarDetailSection: React.FC<{ grammarText: string }> = ({ grammarText }
                   {/* Explanation */}
                   {block.explanation && (
                     <div className="text-sm text-slate-700 leading-relaxed">
-                      <span className="font-semibold text-slate-500 text-xs uppercase tracking-wide mr-1">📖 Giải thích:</span>
+                      <span className="font-semibold text-slate-500 text-xs uppercase tracking-wide mr-1">📖 Explanation:</span>
                       <span>{block.explanation}</span>
                     </div>
                   )}
@@ -741,7 +734,7 @@ const GrammarDetailSection: React.FC<{ grammarText: string }> = ({ grammarText }
                   {block.formula && (
                     <div className="relative p-3 sm:p-4 rounded-xl bg-white border-2 border-dashed border-indigo-200 shadow-inner">
                       <div className="absolute -top-2.5 left-3 px-2 py-0.5 bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest rounded-md shadow-sm">
-                        Công thức
+                        Structure
                       </div>
                       <p className="text-base sm:text-lg font-black text-center text-indigo-800 mt-1 font-mono tracking-wide">
                         {block.formula}
@@ -754,7 +747,7 @@ const GrammarDetailSection: React.FC<{ grammarText: string }> = ({ grammarText }
                     <div className="space-y-2">
                       <div className="flex items-center gap-1.5">
                         <Zap size={14} className={colors.accent} />
-                        <span className="text-xs font-black uppercase tracking-wide text-slate-500">Ví dụ minh họa</span>
+                        <span className="text-xs font-black uppercase tracking-wide text-slate-500">Examples</span>
                       </div>
                       <div className="space-y-2 pl-1">
                         {block.examples.map((ex, exIdx) => (
@@ -779,8 +772,8 @@ const GrammarDetailSection: React.FC<{ grammarText: string }> = ({ grammarText }
                     <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200/60">
                       <Lightbulb size={16} className="text-amber-500 shrink-0 mt-0.5" />
                       <div>
-                        <span className="text-[10px] font-black uppercase tracking-wide text-amber-600 block mb-0.5">💡 Mẹo ghi nhớ</span>
-                        <p className="text-xs text-slate-500 font-medium">Bạn có thể làm tốt hơn nữa! Hãy luyện tập thêm nhé.</p>
+                        <span className="text-[10px] font-black uppercase tracking-wide text-amber-600 block mb-0.5">💡 Tip</span>
+                        <p className="text-xs text-slate-500 font-medium">Keep practicing!</p>
                       </div>
                     </div>
                   )}
@@ -816,7 +809,7 @@ const ComprehensionQuestionItem: React.FC<{ index: number, question: string, sug
 
   const startRecording = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng sử dụng Chrome.');
+      alert('Your browser does not support speech recognition. Please use Chrome.');
       return;
     }
     
@@ -867,7 +860,7 @@ const ComprehensionQuestionItem: React.FC<{ index: number, question: string, sug
   return (
     <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
       <div className="flex gap-3 mb-3">
-        <span className="font-bold text-indigo-400 shrink-0">Câu {index}.</span>
+        <span className="font-bold text-indigo-400 shrink-0">Question {index}.</span>
         <p className="font-medium text-slate-800 flex-1">{question}</p>
       </div>
       <div className="ml-9 flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -885,18 +878,18 @@ const ComprehensionQuestionItem: React.FC<{ index: number, question: string, sug
         <div className="flex-1 min-w-0 space-y-2 w-full">
           {transcript && (
             <div className="text-sm bg-white p-2 rounded border border-slate-200">
-              <span className="text-slate-400 italic mr-2">Bạn:</span>
+              <span className="text-slate-400 italic mr-2">You:</span>
               <span className="text-slate-700 font-medium">{transcript}</span>
             </div>
           )}
           {score !== null && !isRecording && (
             <div className={`text-xs font-bold px-2 py-1 rounded w-fit ${score >= 7 ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-              {score >= 7 ? 'Rất tốt!' : 'Cần cố gắng!'} ({score}/10)
+              {score >= 7 ? 'Great job!' : 'Keep trying!'} ({score}/10)
             </div>
           )}
           {(!isRecording && score !== null && score < 7) && (
             <div className="text-[10px] text-indigo-500 font-medium bg-indigo-50 px-2 py-1 rounded">
-              Gợi ý: {suggestedAnswer}
+              Suggestion: {suggestedAnswer}
             </div>
           )}
         </div>
@@ -974,7 +967,7 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <FileText size={18} style={{ color: '#1D4ED8' }} />
-            <h2 className="text-base font-black" style={{ color: '#1E3A8A', margin: 0 }}>Trung tâm ngoại ngữ Open Minds</h2>
+            <h2 className="text-base font-black" style={{ color: '#1E3A8A', margin: 0 }}>Open Minds Language Center</h2>
           </div>
           <div className="flex items-center gap-2" data-html2canvas-ignore>
             <button
@@ -984,7 +977,7 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
                 backgroundColor: isVocabPlaying ? '#DBEAFE' : '#f9fafb',
                 color: isVocabPlaying ? '#1D4ED8' : '#9ca3af'
               }}
-              title={isVocabPlaying ? "Dừng" : "Nghe từ vựng"}
+              title={isVocabPlaying ? "Stop" : "Listen to Vocabulary"}
             >
               {isVocabPlaying ? <Pause size={18} /> : <Volume2 size={18} />}
             </button>
@@ -1009,7 +1002,7 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
                         <button 
                           onClick={(e) => playWordAudio(e, item.word)}
                           className="text-brand-blue hover:text-brand-gold transition-colors"
-                          title="Nghe phát âm"
+                          title="Listen to pronunciation"
                         >
                           <Volume2 size={20} />
                         </button>
@@ -1026,7 +1019,7 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
           {grammarSummary && (
             <div className="mt-6 p-5 bg-indigo-50 border-2 border-indigo-200 rounded-[1.5rem] shadow-sm overflow-x-auto">
               <h4 className="text-sm font-black text-indigo-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-                Mindmap Ngữ Pháp
+                Grammar Mindmap
               </h4>
               <MindMapTree nodes={parseMarkdownToTree(grammarSummary)} />
             </div>
@@ -1066,7 +1059,7 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
 
           {showTranslation && translationText && (
             <div className="space-y-2 pt-3 mt-4" style={{ borderTop: '2px solid #fef3c7' }}>
-              <div className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#d97706' }}>Tiếng Việt</div>
+              <div className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#d97706' }}>Vietnamese Translation</div>
               <div className="text-sm sm:text-lg leading-relaxed whitespace-pre-wrap font-bold italic" style={{ color: '#334155' }}>
                 {translationText}
               </div>
@@ -1077,7 +1070,7 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
 
       {/* Footer */}
       <div className="flex justify-between items-center pt-2" style={{ borderTop: '1px solid #f3f4f6' }}>
-        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#9ca3af' }}>TRUNG TÂM NGOẠI NGỮ Open Minds</span>
+        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#9ca3af' }}>OPEN MINDS LANGUAGE CENTER</span>
         <span className="text-[10px] font-black" style={{ color: '#1D4ED8' }}>Level: {level}</span>
       </div>
     </div>
@@ -1213,7 +1206,7 @@ const CustomAudioPlayer: React.FC<{
             borderColor: speed !== 1 ? '#c7d2fe' : '#e5e7eb',
             color: speed !== 1 ? '#4f46e5' : '#6b7280'
           }}
-          title="Thay đổi tốc độ"
+          title="Change Speed"
         >
           {speed}x
         </button>
