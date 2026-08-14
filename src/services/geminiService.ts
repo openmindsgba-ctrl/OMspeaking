@@ -320,7 +320,7 @@ export const generateContent = async (
      - "ipa": phonetic transcription
      - "meaning": brief Vietnamese meaning
      - "emoji": a relevant emoji
-  9. "overallGrammar": Tóm tắt ngữ pháp trọng tâm dưới dạng Markdown list phân cấp (dùng gạch đầu dòng -, thò thụt đầu dòng) để có thể hiển thị như một mindmap. Bao gồm: giải thích ngắn gọn dễ hiểu, công thức (nếu có), ví dụ cụ thể và mẹo ghi nhớ nhanh. Bắt buộc dùng tiếng Việt.
+  9. "overallGrammar": Summarize the core grammar topic as a hierarchical Markdown list (using bullet points and indentation) to be displayed as a mindmap. Include: a brief and easy-to-understand explanation, formulas (if any), specific examples, and quick memory tips. MUST be written entirely in English.
   10. "comprehensionQuestions": Sinh ra chính xác 10 câu hỏi đọc hiểu trắc nghiệm (multiple choice) dựa trên bài đọc 1. Mỗi câu có 4 lựa chọn A, B, C, D. Output dạng mảng các object: [{"question": "câu hỏi bằng tiếng Anh", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correctAnswer": "A", "suggestedAnswer": "giải thích ngắn gọn bằng tiếng Việt tại sao đáp án đúng"}]. Đảm bảo mỗi câu có ĐÚNG 4 options và correctAnswer là một trong A, B, C, D.
   11. "homework": Generate homework exercises related to the topic and grammar. Output exactly this JSON structure:
       "matching": { "items": [{"term": "english word", "definition": "vietnamese definition"}] } (5 items)
@@ -766,6 +766,14 @@ Output JSON:
       {
         role: "user",
         parts: [
+          {
+            inlineData: {
+              data: audioData.split(",")[1] || audioData,
+              mimeType: cleanMimeType,
+            },
+          },
+          {
+            text: `Đây là đoạn văn bản gốc: "${questionText}". \n\nHãy so sánh với file âm thanh vừa cung cấp.`,
           },
         ],
       },
