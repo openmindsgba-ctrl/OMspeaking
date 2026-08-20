@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, EyeOff, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, EyeOff } from 'lucide-react';
 
 export const ContentProtection: React.FC = () => {
   const [isBlurred, setIsBlurred] = useState(false);
@@ -146,7 +146,7 @@ export const ContentProtection: React.FC = () => {
       
       {!isBlurred && showWarning && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9998] bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-lg shadow-xl flex items-center gap-3 animate-in slide-in-from-top fade-in duration-300">
-          <ShieldAlert className="text-yellow-600 shrink-0" size={24} />
+          <AlertTriangle className="text-yellow-600 shrink-0" size={24} />
           <div>
             <p className="font-bold text-sm">Cảnh báo vi phạm ({violationCount})</p>
             <p className="text-xs mt-0.5">Bạn đã rời khỏi trang web lúc đang học. Vui lòng tập trung!</p>

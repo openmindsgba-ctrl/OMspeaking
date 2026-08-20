@@ -217,7 +217,7 @@ export default function App() {
   }, [topic, imagePreview, contentMode, level, audioPlayer, recorder, lessonHistory]);
 
   // Pre-load voices on iOS to prevent the Vietnamese voice fallback bug
-  useEffect(() => {
+  React.useEffect(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.getVoices();
       window.speechSynthesis.onvoiceschanged = () => {
