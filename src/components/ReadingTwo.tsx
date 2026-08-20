@@ -126,11 +126,20 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
     setIsSubmitted(true);
   };
 
+  // Helper to normalize strings for comparison
+  const normalize = (str: string) => {
+    return str
+      .toLowerCase()
+      .replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  };
+
   const totalQuestions = answers?.length || 0;
   const correctCount = answers?.reduce((acc, ans, idx) => {
     const num = idx + 1;
-    const userAns = (userInputs[num] || '').toLowerCase().trim();
-    return acc + (userAns === ans.toLowerCase() ? 1 : 0);
+    const userAns = normalize(userInputs[num] || '');
+    return acc + (userAns === normalize(ans) ? 1 : 0);
   }, 0) || 0;
   const scoreStr = totalQuestions > 0 ? ((correctCount / totalQuestions) * 10).toFixed(1).replace('.0', '') : "0";
 
@@ -144,6 +153,18 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
         <h3 className="text-xl sm:text-2xl font-black text-brand-blue uppercase tracking-widest">
           Reading 2 (Fill in the blanks)
         </h3>
+      </div>
+
+      {/* Word Bank */}
+      <div className="bg-blue-50 border-2 border-blue-100 rounded-xl p-4">
+        <h4 className="text-sm font-bold text-blue-900 mb-2 uppercase tracking-wide">Word Bank</h4>
+        <div className="flex flex-wrap gap-2">
+          {vocabulary.map((v, idx) => (
+            <span key={idx} className="bg-white border border-blue-200 text-blue-700 px-3 py-1 rounded-lg text-sm font-bold shadow-sm">
+              {v.word}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Custom Audio Player Bar */}
@@ -225,9 +246,9 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
           if (match) {
             const num = parseInt(match[1], 10);
             const index = num - 1; // zero based
-            const expectedAns = answers?.[index]?.toLowerCase() || '';
-            const userAns = (userInputs[num] || '').toLowerCase().trim();
-            const isCorrect = userAns === expectedAns;
+            const expectedAns = answers?.[index] || '';
+            const userAns = userInputs[num] || '';
+            const isCorrect = normalize(userAns) === normalize(expectedAns);
 
             return (
               <span key={i} className="inline-flex flex-col items-center mx-1 relative top-2">

@@ -311,10 +311,11 @@ export const generateContent = async (
   const systemInstruction = `You are an expert English teacher.
   ${useInputInstructions}
   CRITICAL RULE: NEVER use asterisks (*) anywhere in your output. Do NOT use markdown bold (**word**) or any * character at all.
+  CRITICAL RULE 2: Ensure perfect English grammar and vocabulary usage. If writing about historical events or facts, they MUST be completely factually accurate (e.g., Wall Street Crash must be 1929, not 1920). Ensure the generated texts are natural and idiomatic.
   Your task is to generate:
   1. An image generation prompt for a highly realistic, clear educational illustration matching the topic and grammar. Include quality keywords: "photorealistic, 8k UHD resolution, vivid colors".
   2. "readingText": A reading passage appropriate for level ${level}. MUST contain ALL ${vocabCount} vocabulary words you generate. The length of this reading passage MUST be approximately ${readingLength}. Mark vocabulary words by wrapping them in square brackets like [word]. Incorporate the grammar topic: "${grammarTopic}". ${mode === 'useInput' ? "USE EXACT USER TEXT." : generateModeInstructions}
-  3. "readingText2": A SECOND reading passage with DIFFERENT content but using the SAME ${vocabCount} vocabulary words and grammar topic. The length MUST be approximately ${readingLength}. In this text, replace every occurrence of the ${vocabCount} vocabulary words with numbered blanks exactly like "(1)", "(2)", "(3)" etc. up to the total number of blanks.
+  3. "readingText2": A SECOND reading passage with DIFFERENT content but using the SAME ${vocabCount} vocabulary words and grammar topic. The length MUST be approximately ${readingLength}. In this text, replace every occurrence of the ${vocabCount} vocabulary words with numbered blanks exactly like "(1)", "(2)", "(3)" etc. up to the total number of blanks. Make sure the context of each blank clearly points to exactly ONE vocabulary word.
   4. "reading2Answers": An array of strings containing the correct words for each numbered blank in readingText2, in order.
   5. A short title/topic name (max 5 words).
   6. "translation": Vietnamese translation of readingText.
