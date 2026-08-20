@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { evaluateSpeech } from '../services/geminiService';
 import { EnglishLevel, EvaluationResult } from '../types';
 
@@ -211,6 +211,43 @@ export function useRecorder(
       }, 500);
     }
   }, []);
+
+  // --- ANTI-CHEAT: Stop recording if tab is switched ---
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isRecordingRef.current) {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop();
+          mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+        }
+        isRecordingRef.current = false;
+        setIsRecording(false);
+        setIsEvaluating(false);
+        setError("Lỗi vi phạm (Anti-Cheat): Bạn không được phép chuyển tab hoặc ẩn ứng dụng trong khi đang ghi âm phần thi Speaking. Yêu cầu làm lại từ đầu.");
+      }
+    };
+
+    const handleWindowBlur = () => {
+      if (isRecordingRef.current) {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop();
+          mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+        }
+        isRecordingRef.current = false;
+        setIsRecording(false);
+        setIsEvaluating(false);
+        setError("Lỗi vi phạm (Anti-Cheat): Bạn đã rời khỏi cửa sổ làm bài trong khi đang ghi âm phần thi Speaking. Yêu cầu làm lại từ đầu.");
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, [setError]);
 
   return {
     isRecording,

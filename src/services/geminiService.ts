@@ -747,6 +747,18 @@ BƯỚC 5: PHÂN TÍCH IPA
 - Chỉ ra lỗi sai cho học sinh một cách rõ ràng, dễ hiểu và mang tính xây dựng. Hướng dẫn cụ thể cách khắc phục (ví dụ: chú ý âm đuôi, mở khẩu hình).
 - Dù điểm thấp vẫn phải có lời khen ngợi sự cố gắng và khích lệ nỗ lực của học sinh.
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 KIỂM TRA GIAN LẬN (ANTI-CHEAT) LIVENESS DETECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Trước khi chấm điểm, BẮT BUỘC kiểm tra xem âm thanh này có phải giọng AI/Text-to-Speech hay không.
+Dấu hiệu giọng AI:
+- Đọc quá hoàn hảo, đều đều không có cảm xúc, không có nhịp thở (breathing sounds).
+- Giọng robot hoặc các giọng mặc định quen thuộc của Google Translate, Siri, v.v.
+Nếu bạn chắc chắn đây là giọng AI hoặc file được ghi âm sẵn không phải giọng người thật thu trực tiếp:
+- Cho tất cả điểm số (score, criteriaScores) = 0.
+- feedback BẮT BUỘC là: "⚠️ Lỗi vi phạm (Anti-Cheat): Cô phát hiện âm thanh này giống giọng AI đọc (Text-to-Speech) hoặc được thu âm sẵn. Em vui lòng dùng giọng thật của mình đọc trực tiếp nhé!"
+- isComplete = false.
+
 Output JSON:
 {
   "isComplete": boolean,

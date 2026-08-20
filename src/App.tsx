@@ -20,6 +20,7 @@ import { CertificateModal } from './components/CertificateModal';
 import { Footer } from './components/Footer';
 import { LessonHistory } from './components/LessonHistory';
 import { ExerciseSection } from './components/ExerciseSection';
+import { ContentProtection } from './components/ContentProtection';
 
 // Hooks
 import { useFileProcessor } from './hooks/useFileProcessor';
@@ -215,6 +216,16 @@ export default function App() {
     }
   }, [topic, imagePreview, contentMode, level, audioPlayer, recorder, lessonHistory]);
 
+  // Pre-load voices on iOS to prevent the Vietnamese voice fallback bug
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+  }, []);
+
   const handleRetry = useCallback(() => {
     setError(null);
     handleGenerate();
@@ -345,6 +356,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-brand-blue-dark text-white font-sans selection:bg-brand-gold/20 relative overflow-hidden">
+      <ContentProtection />
+      
       {/* Decorative Background Icons */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 flex items-center justify-center">
         <KeyRound className="absolute top-10 left-10 w-24 h-24 text-blue-300 opacity-10 -rotate-45" />

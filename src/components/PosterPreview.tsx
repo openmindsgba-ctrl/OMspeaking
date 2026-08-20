@@ -485,10 +485,23 @@ const renderMarkdown = (text: string) => {
   });
 };
 
+const getEnglishVoice = () => {
+  const voices = window.speechSynthesis.getVoices();
+  return voices.find(v => v.lang === 'en-US' && v.name.includes('Samantha')) || 
+         voices.find(v => v.lang === 'en-US' && v.name.includes('Siri')) ||
+         voices.find(v => v.lang === 'en-US') || 
+         voices.find(v => v.lang.startsWith('en')) ||
+         null;
+};
+
 const playWordAudio = (e: React.MouseEvent, word: string) => {
   e.stopPropagation();
   const utterance = new SpeechSynthesisUtterance(word);
   utterance.lang = 'en-US';
+  const voice = getEnglishVoice();
+  if (voice) {
+    utterance.voice = voice;
+  }
   window.speechSynthesis.speak(utterance);
 };
 
@@ -934,6 +947,10 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
       vocabulary.forEach((item, index) => {
         const utterance = new SpeechSynthesisUtterance(item.word);
         utterance.lang = 'en-US';
+        const voice = getEnglishVoice();
+        if (voice) {
+          utterance.voice = voice;
+        }
         if (index === vocabulary.length - 1) {
           utterance.onend = () => setIsVocabPlaying(false);
           utterance.onerror = () => setIsVocabPlaying(false);
