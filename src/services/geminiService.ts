@@ -325,8 +325,17 @@ export const generateContent = async (
      - "ipa": phonetic transcription
      - "meaning": brief Vietnamese meaning
      - "emoji": a relevant emoji
-  9. "overallGrammar": Trình bày ngữ pháp theo định dạng Markdown list phân cấp. BẮT BUỘC bao gồm đầy đủ các phần sau: Giải thích ngữ pháp (ngắn gọn, dễ hiểu), Công thức (formulas) rõ ràng, Ví dụ minh họa kèm theo dịch nghĩa tiếng Việt cho từng ví dụ, và Mẹo học hoặc ghi nhớ (nếu có). ${grammarLanguageInstruction}
+  9. "overallGrammar": Trình bày ngữ pháp theo định dạng Markdown list phân cấp. BẮT BUỘC trình bày theo ĐÚNG KHUÔN MẪU VÀ THỨ TỰ 3 PHẦN sau:
+     1. Giải thích về ngữ pháp: Giải thích rõ ràng về cách sử dụng khi nào, trong hoàn cảnh nào.
+     2. Công thức: Cấu trúc rõ ràng (Ví dụ: S + V + O...).
+     3. Ví dụ minh họa: Phải có ví dụ bằng tiếng Anh và ngay bên dưới là câu dịch sang tiếng Việt tương ứng.
+     (Nếu có mẹo học/ghi nhớ thì để ở phần phụ cuối cùng). ${grammarLanguageInstruction}
   10. "comprehensionQuestions": Sinh ra chính xác 10 câu hỏi đọc hiểu TỰ LUẬN (open-ended questions) dựa trên bài đọc 1 để học sinh tự điền câu trả lời. Output dạng mảng các object: [{"question": "câu hỏi bằng tiếng Anh", "suggestedAnswer": "câu trả lời mẫu tiếng Anh đầy đủ, chính xác và đúng ngữ pháp nhất"}]. Không sinh ra options (mảng rỗng) hay correctAnswer.
+  11. "homework": Generate 4 practice exercises related to the grammar topic in exactly this order and structure, with exactly 8 items per exercise:
+      "mistakes": [{"sentence": "sentence with one grammatical mistake", "mistake": "the wrong word/phrase", "correction": "the correct word/phrase"}] (8 items)
+      "completeSentences": [{"sentence": "sentence with ___", "givenWords": "given word(s) to use or base word", "answer": "correct word/phrase to fill in"}] (8 items)
+      "verbConjugation": [{"sentence": "sentence with ___", "verb": "base verb in bracket", "answer": "correct conjugated verb form"}] (8 items)
+      "rewriteSentences": [{"originalSentence": "original sentence", "hint": "starting words of the new sentence", "answer": "complete rewritten sentence without changing meaning"}] (8 items)
   
   Output the result strictly in JSON format:
   {
@@ -343,7 +352,13 @@ export const generateContent = async (
     ],
     "vocabulary": [
       { "word": "string", "ipa": "string", "meaning": "string", "emoji": "string" }
-    ]
+    ],
+    "homework": {
+      "mistakes": [],
+      "completeSentences": [],
+      "verbConjugation": [],
+      "rewriteSentences": []
+    }
   }
   Note: Ensure exactly ${vocabCount} vocabulary items and adherence to the ${readingLength} reading length requirement. NEVER use the * character anywhere.`;
 

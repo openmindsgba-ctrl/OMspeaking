@@ -38,10 +38,17 @@ export interface VerbConjugationExercise {
   answer: string;
 }
 
+export interface RewriteSentenceExercise {
+  originalSentence: string;
+  hint: string; // The starting words of the new sentence
+  answer: string; // The complete rewritten sentence
+}
+
 export interface HomeworkData {
   mistakes: MistakeExercise[];
   completeSentences: CompleteSentenceExercise[];
   verbConjugation: VerbConjugationExercise[];
+  rewriteSentences: RewriteSentenceExercise[];
 }
 
 export interface AppState {

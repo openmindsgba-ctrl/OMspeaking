@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HomeworkData } from '../types';
-import { CheckCircle, XCircle, RefreshCw, Pen, BookOpen, Target, Search, MessageSquare } from 'lucide-react';
+import { CheckCircle, XCircle, Search, Pen, Target, BookOpen } from 'lucide-react';
 
 interface HomeworkSectionProps {
   data: HomeworkData;
@@ -27,7 +27,7 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h3 className="text-xl font-black text-indigo-800 flex items-center gap-2">
           <BookOpen size={24} className="text-indigo-600" />
-          Homework
+          Practice Exercises
         </h3>
         <button
           onClick={() => setShowAnswers(!showAnswers)}
@@ -151,13 +151,14 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
                     <React.Fragment key={pIdx}>
                       <span>{part}</span>
                       {pIdx < arr.length - 1 && (
-                        <div className="inline-flex items-center gap-2 mx-1 relative">
+                        <div className="inline-flex items-center gap-1 mx-1 relative">
                           <input
                             type="text"
                             value={userInputs[`verb-${idx}`] || ''}
                             onChange={(e) => handleInputChange(`verb-${idx}`, e.target.value)}
                             className="w-32 border-b-2 border-slate-300 focus:border-indigo-500 outline-none text-center font-bold text-indigo-700 bg-indigo-50/50"
                           />
+                          <span className="font-bold text-indigo-600">({q.verb})</span>
                           {showAnswers && (
                             <span className="absolute -right-6 top-1/2 -translate-y-1/2">
                               {isCorrect(`verb-${idx}`, q.answer) ? (
@@ -171,11 +172,55 @@ export const HomeworkSection: React.FC<HomeworkSectionProps> = ({ data }) => {
                       )}
                     </React.Fragment>
                   ))}
-                  <span className="ml-2 font-bold text-indigo-600">({q.verb})</span>
                 </div>
                 {showAnswers && !isCorrect(`verb-${idx}`, q.answer) && (
                   <div className="ml-6 text-sm text-green-600 font-medium italic">
                     Answer: {q.answer}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* Bài 4: Viết lại câu và không làm thay đổi nghĩa */}
+      {data.rewriteSentences && data.rewriteSentences.length > 0 && (
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+          <h4 className="font-bold text-slate-700 flex items-center gap-2 mb-3">
+            <Pen size={18} className="text-fuchsia-500" />
+            Bài 4: Viết lại câu và không làm thay đổi nghĩa
+          </h4>
+          <div className="space-y-4">
+            {data.rewriteSentences.map((q, idx) => (
+              <div key={`rewrite-${idx}`} className="bg-fuchsia-50/30 p-3 rounded-lg border border-fuchsia-100">
+                <p className="text-sm font-medium text-slate-800 mb-2">
+                  <span className="font-black text-fuchsia-600 mr-2">{idx + 1}.</span>
+                  {q.originalSentence}
+                </p>
+                <div className="flex items-start gap-2 ml-6">
+                  <span className="text-sm font-bold text-slate-700 whitespace-nowrap mt-2">{q.hint}</span>
+                  <div className="relative flex-1">
+                    <textarea
+                      value={userInputs[`rewrite-${idx}`] || ''}
+                      onChange={(e) => handleInputChange(`rewrite-${idx}`, e.target.value)}
+                      placeholder="Write your sentence here..."
+                      className="w-full border-2 border-slate-200 rounded-lg p-2 text-sm focus:border-fuchsia-400 outline-none resize-none"
+                      rows={2}
+                    />
+                    {showAnswers && (
+                      <span className="absolute -right-8 top-1/2 -translate-y-1/2">
+                        {(isCorrect(`rewrite-${idx}`, q.answer) || isCorrect(`rewrite-${idx}`, q.answer.replace(new RegExp('^' + q.hint, 'i'), '').trim())) ? (
+                          <CheckCircle size={16} className="text-green-500" />
+                        ) : (
+                          <XCircle size={16} className="text-rose-500" />
+                        )}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {showAnswers && !(isCorrect(`rewrite-${idx}`, q.answer) || isCorrect(`rewrite-${idx}`, q.answer.replace(new RegExp('^' + q.hint, 'i'), '').trim())) && (
+                  <div className="mt-2 ml-6 text-sm text-green-700 font-medium bg-green-50 p-2 rounded border border-green-100">
+                    Answer: <span className="font-bold">{q.answer}</span>
                   </div>
                 )}
               </div>

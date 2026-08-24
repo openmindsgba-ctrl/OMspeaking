@@ -19,7 +19,7 @@ import { SpeechEvaluator } from './components/SpeechEvaluator';
 import { CertificateModal } from './components/CertificateModal';
 import { Footer } from './components/Footer';
 import { LessonHistory } from './components/LessonHistory';
-import { ExerciseSection } from './components/ExerciseSection';
+
 import { ContentProtection } from './components/ContentProtection';
 
 // Hooks
@@ -558,50 +558,7 @@ export default function App() {
                         </div>
                       )}
 
-                      {/* Exercise Section */}
-                      {!exerciseData ? (
-                        <div className="w-full max-w-[800px] p-6 bg-amber-50/75 rounded-2xl border-2 border-dashed border-amber-200 flex flex-col items-center justify-center text-center space-y-3 mt-8">
-                          <span className="text-2xl">📝</span>
-                          <div>
-                            <h4 className="font-bold text-amber-900 text-sm sm:text-base">Lesson has no exercises yet</h4>
-                            <p className="text-xs text-amber-700/80 mt-1 max-w-md">Due to network connection or system overload from Google. Please click the button below to generate exercises now!</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              if (!readingText) return;
-                              setIsGenerating(true);
-                              setError(null);
-                              try {
-                                const exData = await generateExercise(readingText, level);
-                                setExerciseData(exData);
-                                // Save to lesson history
-                                if (currentLessonId) {
-                                  lessonHistory.updateExerciseData(currentLessonId, exData);
-                                }
-                              } catch (err: any) {
-                                console.error(err);
-                                setError("Cannot generate exercises at this time. Please check your API key and try again later.");
-                              } finally {
-                                setIsGenerating(false);
-                              }
-                            }}
-                            disabled={isGenerating}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 active:scale-95 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all"
-                          >
-                            <RefreshCw className={isGenerating ? "animate-spin" : ""} size={14} />
-                            Generate Exercises
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="mt-8">
-                          <ExerciseSection 
-                            exerciseData={exerciseData} 
-                            savedScore={exerciseScore} 
-                            onComplete={handleExerciseComplete} 
-                          />
-                        </div>
-                      )}
+
 
                       {/* Certificate Modal */}
                       <CertificateModal

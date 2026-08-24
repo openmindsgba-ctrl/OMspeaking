@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Volume2, CheckCircle, XCircle, Award, Play, Pause } from 'lucide-react';
 import { EnglishLevel, VocabularyItem } from '../types';
+import { HomeworkSection } from './HomeworkSection';
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5];
 
@@ -333,6 +334,8 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
           >
             Start Over
           </button>
+          
+          {homeworkData && <HomeworkSection data={homeworkData} />}
         </div>
       )}
 
