@@ -281,8 +281,8 @@ export const generateContent = async (
       case "Starters": return { vocabCount: 6, readingLength: "50-80 words" };
       case "Movers": return { vocabCount: 8, readingLength: "80-120 words" };
       case "Flyers": return { vocabCount: 10, readingLength: "120-150 words" };
-      case "A1": return { vocabCount: 12, readingLength: "150-200 words" };
-      case "A2": return { vocabCount: 15, readingLength: "200-250 words" };
+      case "A1": return { vocabCount: 22, readingLength: "150-200 words" };
+      case "A2": return { vocabCount: 30, readingLength: "200-250 words" };
       case "B1": return { vocabCount: 18, readingLength: "250-350 words" };
       case "B2": return { vocabCount: 20, readingLength: "350-500 words" };
       default: return { vocabCount: 12, readingLength: "150-200 words" };
@@ -295,7 +295,7 @@ export const generateContent = async (
     ? `
   ⚠️ ABSOLUTE RULE FOR 'useInput' MODE:
   - Copy the user's input text EXACTLY into "readingText" (Word for word).
-  - Use the exact same input for "readingText2" but replace all instances of the ${vocabCount} vocabulary words with numbered blanks like "(1)", "(2)", "(3)".
+  - Use the exact same input for "readingText2" but replace all instances of the ${vocabCount} vocabulary words/phrases with numbered blanks like "(1)", "(2)", "(3)".
   - The "translation" and "translation2" must translate the FULL texts.
   ` 
     : '';
@@ -314,26 +314,23 @@ export const generateContent = async (
   CRITICAL RULE 2: Ensure perfect English grammar and vocabulary usage. If writing about historical events or facts, they MUST be completely factually accurate (e.g., Wall Street Crash must be 1929, not 1920). Ensure the generated texts are natural and idiomatic.
   Your task is to generate:
   1. An image generation prompt for a highly realistic, clear educational illustration matching the topic and grammar. Include quality keywords: "photorealistic, 8k UHD resolution, vivid colors".
-  2. "readingText": A reading passage appropriate for level ${level}. MUST contain ALL ${vocabCount} vocabulary words you generate. The length of this reading passage MUST be approximately ${readingLength}. Mark vocabulary words by wrapping them in square brackets like [word]. Incorporate the grammar topic: "${grammarTopic}". ${mode === 'useInput' ? "USE EXACT USER TEXT." : generateModeInstructions}
-  3. "readingText2": A SECOND reading passage with DIFFERENT content but using the SAME ${vocabCount} vocabulary words and grammar topic. The length MUST be approximately ${readingLength}. In this text, replace every occurrence of the ${vocabCount} vocabulary words with numbered blanks exactly like "(1)", "(2)", "(3)" etc. up to the total number of blanks. Make sure the context of each blank clearly points to exactly ONE vocabulary word.
+  2. "readingText": A reading passage appropriate for level ${level}. MUST contain ALL ${vocabCount} vocabulary words/phrases you generate. The length of this reading passage MUST be approximately ${readingLength}. Mark vocabulary words/phrases by wrapping them in square brackets like [word] or [phrase]. Incorporate the grammar topic: "${grammarTopic}". ${mode === 'useInput' ? "USE EXACT USER TEXT." : generateModeInstructions}
+  3. "readingText2": A SECOND reading passage with DIFFERENT content but using the SAME ${vocabCount} vocabulary words/phrases and grammar topic. The length MUST be approximately ${readingLength}. In this text, replace every occurrence of the ${vocabCount} vocabulary words/phrases with numbered blanks exactly like "(1)", "(2)", "(3)" etc. up to the total number of blanks. Make sure the context of each blank clearly points to exactly ONE vocabulary word/phrase.
   4. "reading2Answers": An array of strings containing the correct words for each numbered blank in readingText2, in order.
   5. A short title/topic name (max 5 words).
   6. "translation": Vietnamese translation of readingText.
   7. "translation2": Vietnamese translation of readingText2.
-  8. "vocabulary": A list of EXACTLY ${vocabCount} key vocabulary words. For each word include:
-     - "word": the English word
+  8. "vocabulary": A list of EXACTLY ${vocabCount} key vocabulary words and phrases related to the reading. For each item include:
+     - "word": the English word or phrase
      - "ipa": phonetic transcription
      - "meaning": brief Vietnamese meaning
      - "emoji": a relevant emoji
-  9. "overallGrammar": Summarize the core grammar topic as a hierarchical Markdown list (using bullet points and indentation) to be displayed as a mindmap. Include: a brief and easy-to-understand explanation, formulas (if any), specific examples, and quick memory tips. ${grammarLanguageInstruction}
-  10. "comprehensionQuestions": Sinh ra chính xác 10 câu hỏi đọc hiểu trắc nghiệm (multiple choice) dựa trên bài đọc 1. Mỗi câu có 4 lựa chọn A, B, C, D. Output dạng mảng các object: [{"question": "câu hỏi bằng tiếng Anh", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correctAnswer": "A", "suggestedAnswer": "giải thích ngắn gọn bằng tiếng Việt tại sao đáp án đúng"}]. Đảm bảo mỗi câu có ĐÚNG 4 options và correctAnswer là một trong A, B, C, D.
-  11. "homework": Generate homework exercises related to the topic and grammar. Output exactly this JSON structure:
-      "matching": { "items": [{"term": "english word", "definition": "vietnamese definition"}] } (5 items)
-      "fillBlanks": [{"sentence": "sentence with ___", "options": ["opt1", "opt2", "opt3"], "answer": "correct option"}] (5 items)
-      "rewrites": [{"originalSentence": "sentence", "hint": "hint (e.g. Begin with...)", "answer": "rewritten sentence"}] (5 items)
-      "mistakes": [{"sentence": "sentence with one mistake", "mistake": "the wrong word", "correction": "the correct word"}] (5 items)
-      "questions": [{"question": "reading comprehension question", "suggestedAnswer": "answer"}] (3 items)
-      "essay": {"topic": "essay topic", "guidance": "guidance/hints in vietnamese"}
+  9. "overallGrammar": Trình bày ngữ pháp theo định dạng Markdown list phân cấp. BẮT BUỘC bao gồm đầy đủ các phần sau: Giải thích ngữ pháp (ngắn gọn, dễ hiểu), Công thức (formulas) rõ ràng, Ví dụ minh họa kèm theo dịch nghĩa tiếng Việt cho từng ví dụ, và Mẹo học hoặc ghi nhớ (nếu có). ${grammarLanguageInstruction}
+  10. "comprehensionQuestions": Sinh ra chính xác 10 câu hỏi đọc hiểu TỰ LUẬN (open-ended questions) dựa trên bài đọc 1 để học sinh tự điền câu trả lời. Output dạng mảng các object: [{"question": "câu hỏi bằng tiếng Anh", "suggestedAnswer": "câu trả lời mẫu tiếng Anh đầy đủ, chính xác và đúng ngữ pháp nhất"}]. Không sinh ra options (mảng rỗng) hay correctAnswer.
+  11. "homework": Generate 3 practice exercises related to the grammar topic in exactly this order and structure, with exactly 8 items per exercise:
+      "mistakes": [{"sentence": "sentence with one grammatical mistake", "mistake": "the wrong word/phrase", "correction": "the correct word/phrase"}] (8 items)
+      "completeSentences": [{"sentence": "sentence with ___", "givenWords": "given word(s) to use or base word", "answer": "correct word/phrase to fill in"}] (8 items)
+      "verbConjugation": [{"sentence": "sentence with ___", "verb": "base verb in bracket", "answer": "correct conjugated verb form"}] (8 items)
   
   Output the result strictly in JSON format:
   {
@@ -346,18 +343,15 @@ export const generateContent = async (
     "translation2": "string",
     "overallGrammar": "string",
     "comprehensionQuestions": [
-      { "question": "string", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correctAnswer": "A", "suggestedAnswer": "string" }
+      { "question": "string", "suggestedAnswer": "string" }
     ],
     "vocabulary": [
       { "word": "string", "ipa": "string", "meaning": "string", "emoji": "string" }
     ],
     "homework": {
-      "matching": { "items": [] },
-      "fillBlanks": [],
-      "rewrites": [],
       "mistakes": [],
-      "questions": [],
-      "essay": { "topic": "", "guidance": "" }
+      "completeSentences": [],
+      "verbConjugation": []
     }
   }
   Note: Ensure exactly ${vocabCount} vocabulary items and adherence to the ${readingLength} reading length requirement. NEVER use the * character anywhere.`;
@@ -978,36 +972,40 @@ export const evaluateComprehensionAnswer = async (
   question: string,
   studentAnswer: string,
   suggestedAnswer: string
-): Promise<{ isCorrect: boolean; feedback: string }> => {
+): Promise<{ isCorrect: boolean; feedback: string; score: number }> => {
   if (!apiKey) throw new Error("API key is required");
   if (!studentAnswer || studentAnswer.trim().length === 0) {
     return {
       isCorrect: false,
-      feedback: "Cô không nghe rõ con nói gì. Con hãy thử đọc lại lớn và rõ ràng hơn nhé!"
+      score: 0,
+      feedback: "Cô không thấy câu trả lời của em. Em hãy thử lại nhé!"
     };
   }
 
   const ai = new GoogleGenAI({ apiKey });
   
-  const prompt = `You are an encouraging and professional English teacher (Ms. Yến) evaluating a young student's spoken answer to a reading comprehension question.
+  const prompt = `You are an encouraging and professional English teacher (Ms. Yến) evaluating a student's answer (typed or spoken) to a reading comprehension question.
 
 Question: "${question}"
 Suggested Correct Answer: "${suggestedAnswer}"
-Student's Spoken Answer (transcript): "${studentAnswer}"
+Student's Answer: "${studentAnswer}"
 
-Evaluate the student's answer. 
-Is it conceptually correct based on the suggested answer? 
-Keep in mind speech recognition might have minor typos, so evaluate the meaning and closeness to the correct answer.
+Evaluate the student's answer based on these criteria:
+- Give a score from 0 to 10.
+- If the meaning is completely wrong or irrelevant, score is 0-4.
+- If the meaning is correct but it is a short answer (not a full sentence) or has minor grammatical errors, score is 5-8.
+- If the answer is a full, grammatically correct sentence that accurately answers the question, score is 9-10 (highest score).
 
 Output your evaluation strictly in the following JSON format without any markdown blocks or extra text:
 {
-  "isCorrect": true/false,
-  "feedback": "Your short, encouraging feedback in Vietnamese (max 2 sentences). If correct, praise them. If incorrect, explain gently what the correct idea is."
+  "isCorrect": true/false (true if score >= 5),
+  "score": number (0 to 10),
+  "feedback": "Your encouraging feedback in Vietnamese (max 3 sentences). Explain the score, praise them, or gently correct their grammar/idea if needed."
 }`;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash",
       contents: prompt,
       config: {
         temperature: 0.2,
@@ -1020,7 +1018,8 @@ Output your evaluation strictly in the following JSON format without any markdow
     const parsed = parseSafeJson(text);
     return {
       isCorrect: !!parsed.isCorrect,
-      feedback: parsed.feedback || (parsed.isCorrect ? "Câu trả lời của con rất chính xác! Khá lắm!" : "Câu trả lời chưa chính xác. Con hãy thử lại nhé!")
+      score: typeof parsed.score === 'number' ? parsed.score : (parsed.isCorrect ? 10 : 0),
+      feedback: parsed.feedback || (parsed.isCorrect ? "Câu trả lời của em rất chính xác! Khá lắm!" : "Câu trả lời chưa chính xác. Em hãy thử lại nhé!")
     };
   } catch (err: any) {
     console.error("Evaluate Comprehension Answer Error:", err);

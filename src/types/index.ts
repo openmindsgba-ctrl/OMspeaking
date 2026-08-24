@@ -20,45 +20,28 @@ export interface ExerciseData {
   questions: WrittenQuestion[]; // 30 questions
 }
 
-export interface MatchingExercise {
-  items: { term: string; definition: string }[];
-}
-
-export interface FillBlankExercise {
-  sentence: string; // e.g., "The cat ___ on the mat."
-  options?: string[]; // Multiple choice options
-  answer: string;
-}
-
-export interface RewriteExercise {
-  originalSentence: string;
-  hint: string; // e.g., "Begin with 'If...'"
-  answer: string;
-}
-
 export interface MistakeExercise {
-  sentence: string; // "She don't like apples."
-  mistake: string; // "don't"
-  correction: string; // "doesn't"
+  sentence: string;
+  mistake: string;
+  correction: string;
 }
 
-export interface QuestionExercise {
-  question: string;
-  suggestedAnswer: string;
+export interface CompleteSentenceExercise {
+  sentence: string; // contains '___'
+  givenWords: string; // words provided to fill in or use
+  answer: string;
 }
 
-export interface EssayExercise {
-  topic: string;
-  guidance: string; // Bullet points or hints
+export interface VerbConjugationExercise {
+  sentence: string; // contains '___'
+  verb: string; // the base verb
+  answer: string;
 }
 
 export interface HomeworkData {
-  matching: MatchingExercise;
-  fillBlanks: FillBlankExercise[];
-  rewrites: RewriteExercise[];
   mistakes: MistakeExercise[];
-  questions: QuestionExercise[];
-  essay: EssayExercise;
+  completeSentences: CompleteSentenceExercise[];
+  verbConjugation: VerbConjugationExercise[];
 }
 
 export interface AppState {

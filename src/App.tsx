@@ -70,8 +70,19 @@ export default function App() {
 
   // Custom hooks
   const fileProcessor = useFileProcessor(setTopic, setImagePreview, setContentMode, setError, contentMode);
+  const fullReadingText2 = React.useMemo(() => {
+    if (!readingText2) return null;
+    let full = readingText2;
+    if (reading2Answers) {
+      reading2Answers.forEach((ans, idx) => {
+        full = full.replace(`(${idx + 1})`, ans);
+      });
+    }
+    return full;
+  }, [readingText2, reading2Answers]);
+
   const audioPlayer = useAudioPlayer(readingText, level, setError);
-  const audioPlayer2 = useAudioPlayer(readingText2, level, setError);
+  const audioPlayer2 = useAudioPlayer(fullReadingText2, level, setError);
   const recorder = useRecorder(readingText, level, setError);
   const lessonHistory = useLessonHistory();
 
@@ -152,7 +163,14 @@ export default function App() {
         return null;
       }) : null;
       
-      const audioUrl2Result = result.readingText2 ? await generateAudio(result.readingText2, level).catch(err => {
+      let fullText2 = result.readingText2;
+      if (fullText2 && result.reading2Answers) {
+        result.reading2Answers.forEach((ans, idx) => {
+          fullText2 = fullText2!.replace(`(${idx + 1})`, ans);
+        });
+      }
+      
+      const audioUrl2Result = fullText2 ? await generateAudio(fullText2, level).catch(err => {
         console.error("Background audio generation 2 failed", err);
         return null;
       }) : null;
@@ -470,14 +488,7 @@ export default function App() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  {readingText && (
-                    <button onClick={() => setShowTranslation(!showTranslation)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm
-                        ${showTranslation ? 'bg-brand-blue text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                    >
-                      <Languages size={14} /> {showTranslation ? 'Hide translation' : 'Show translation'}
-                    </button>
-                  )}
+
                   {readingText && (
                     <button onClick={downloadPoster} disabled={isDownloading}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all shadow-lg

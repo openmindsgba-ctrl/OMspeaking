@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { FileText, Volume2, Pause, RefreshCw, Target, Play, BookOpen, Lightbulb, Zap, Mic, MicOff, CheckCircle } from 'lucide-react';
+import { FileText, Volume2, Pause, RefreshCw, Target, Play, BookOpen, Lightbulb, Zap, Mic, MicOff, CheckCircle, Languages } from 'lucide-react';
 import { VocabularyItem, EnglishLevel } from '../types';
 import { ReadingComprehension, ComprehensionQuestion } from './ReadingComprehension';
 
@@ -1082,6 +1082,18 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
               {readingText ? renderMarkdown(readingText) : null}
             </div>
             {readingText && <ReadingPractice originalText={readingText} />}
+            {translationText && (
+              <div className="mt-6 flex flex-col items-center" data-html2canvas-ignore>
+                <button
+                  onClick={onToggleTranslation}
+                  className="px-6 py-2.5 bg-blue-100 text-blue-700 font-bold rounded-full hover:bg-blue-200 transition-colors flex items-center gap-2 text-sm shadow-sm"
+                >
+                  <Languages size={18} />
+                  {showTranslation ? 'Ẩn bản dịch' : 'Dịch'}
+                </button>
+              </div>
+            )}
+            
             {comprehensionQuestions && comprehensionQuestions.length > 0 && (
               <div data-html2canvas-ignore className="mt-8">
                 <ReadingComprehension questions={comprehensionQuestions} apiKey={apiKey || ""} />
