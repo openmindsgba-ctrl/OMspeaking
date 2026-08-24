@@ -304,7 +304,9 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
       </div>
 
       <button
-        onClick={isRecording ? stopRecording : startRecording}
+        type="button"
+        onClick={(e) => { e.preventDefault(); isRecording ? stopRecording() : startRecording(); }}
+        onTouchEnd={(e) => { e.preventDefault(); isRecording ? stopRecording() : startRecording(); }}
         className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
           isRecording 
             ? 'bg-rose-500 text-white animate-pulse shadow-rose-300 scale-110' 

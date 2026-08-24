@@ -38,7 +38,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
 
   const startSpeechRecognition = (qIdx: number) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert("Your browser doesn't support speech recognition. Please use Chrome.");
+      alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói (hoặc bạn đang mở trong Zalo/Facebook). Vui lòng nhấn vào biểu tượng 3 chấm ở góc trên và chọn 'Mở bằng trình duyệt' (Chrome/Safari) để sử dụng tính năng này.");
       return;
     }
     
@@ -66,7 +66,10 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
     };
 
     recognition.onerror = (event: any) => {
-      console.error(event.error);
+      console.error("Speech recognition error:", event.error);
+      if (event.error === 'not-allowed') {
+        alert("Không thể truy cập micro. Bạn vui lòng: \n1. Nhấn 'Cho phép' khi trình duyệt yêu cầu.\n2. Kiểm tra cài đặt quyền truy cập micro.\n3. Nhấn nút 'Mở trong tab mới' (góc trên bên phải) nếu đang dùng Zalo/FB.");
+      }
       setActiveMic(null);
     };
 
@@ -156,7 +159,9 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
                         rows={2}
                       />
                       <button
-                        onClick={() => activeMic === qIdx ? handleStopMic() : startSpeechRecognition(qIdx)}
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); activeMic === qIdx ? handleStopMic() : startSpeechRecognition(qIdx) }}
+                        onTouchEnd={(e) => { e.preventDefault(); activeMic === qIdx ? handleStopMic() : startSpeechRecognition(qIdx) }}
                         disabled={isLoading || evaluation !== undefined}
                         className={`absolute right-2 top-2 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                           activeMic === qIdx

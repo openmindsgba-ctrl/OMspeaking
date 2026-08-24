@@ -103,6 +103,10 @@ export function useRecorder(
 
   const startRecording = useCallback(async () => {
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Trình duyệt của bạn không hỗ trợ ghi âm (hoặc bạn đang mở trong trình duyệt nội bộ của Zalo/Facebook). Vui lòng nhấn vào biểu tượng 3 chấm ở góc trên và chọn 'Mở bằng trình duyệt' (Chrome/Safari) để sử dụng tính năng này.");
+      }
+
       // Request audio with noise reduction for better speech recognition
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -179,9 +183,13 @@ export function useRecorder(
         (err.message && err.message.toLowerCase().includes('permission denied'));
 
       if (isPermissionError) {
-        setError("Không thể truy cập micro. Bạn vui lòng: \n1. Nhấn 'Cho phép' khi trình duyệt yêu cầu.\n2. Kiểm tra cài đặt quyền truy cập micro của trình duyệt.\n3. Nhấn nút 'Mở trong tab mới' (góc trên bên phải) để ứng dụng hoạt động tốt nhất.");
+        const msg = "Không thể truy cập micro. Bạn vui lòng: \n1. Nhấn 'Cho phép' khi trình duyệt yêu cầu.\n2. Kiểm tra cài đặt quyền truy cập micro của trình duyệt.\n3. Nhấn nút 'Mở trong tab mới' (góc trên bên phải) để ứng dụng hoạt động tốt nhất.";
+        setError(msg);
+        alert(msg);
       } else {
-        setError(`Lỗi micro: ${err.message || "Vui lòng kiểm tra lại thiết bị của bạn."}`);
+        const msg = `Lỗi micro: ${err.message || "Vui lòng kiểm tra lại thiết bị của bạn."}`;
+        setError(msg);
+        alert(msg);
       }
     }
   }, [handleEvaluate, setError]);

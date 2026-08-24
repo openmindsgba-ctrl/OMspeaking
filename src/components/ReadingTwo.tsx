@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Volume2, CheckCircle, XCircle, Award, Play, Pause } from 'lucide-react';
 import { EnglishLevel, VocabularyItem } from '../types';
-import { HomeworkSection } from './HomeworkSection';
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5];
 
@@ -40,6 +39,10 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
 }) => {
   const [userInputs, setUserInputs] = useState<Record<number, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const shuffledVocabulary = React.useMemo(() => {
+    return [...vocabulary].sort(() => Math.random() - 0.5);
+  }, [vocabulary]);
 
   // Audio player state
   const [currentTime, setCurrentTime] = useState(0);
@@ -159,7 +162,7 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
       <div className="bg-blue-50 border-2 border-blue-100 rounded-xl p-4">
         <h4 className="text-sm font-bold text-blue-900 mb-2 uppercase tracking-wide">Word Bank</h4>
         <div className="flex flex-wrap gap-2">
-          {vocabulary.map((v, idx) => (
+          {shuffledVocabulary.map((v, idx) => (
             <span key={idx} className="bg-white border border-blue-200 text-blue-700 px-3 py-1 rounded-lg text-sm font-bold shadow-sm">
               {v.word}
             </span>
@@ -330,8 +333,6 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
           >
             Start Over
           </button>
-          
-          {homeworkData && <HomeworkSection data={homeworkData} />}
         </div>
       )}
 
