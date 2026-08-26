@@ -21,6 +21,7 @@ import { Footer } from './components/Footer';
 import { LessonHistory } from './components/LessonHistory';
 
 import { ContentProtection } from './components/ContentProtection';
+import { WrittenExercises } from './components/WrittenExercises';
 
 // Hooks
 import { useFileProcessor } from './hooks/useFileProcessor';
@@ -558,7 +559,25 @@ export default function App() {
                         </div>
                       )}
 
+                      {/* Written Exercises */}
+                      {exerciseData && (
+                        <div className="w-full max-w-4xl mx-auto">
+                          <WrittenExercises
+                            data={exerciseData}
+                            onComplete={handleExerciseComplete}
+                          />
+                        </div>
+                      )}
 
+                      {/* Submit Button */}
+                      <div className="w-full max-w-4xl mx-auto mt-8 flex justify-center pb-12">
+                        <button
+                          onClick={() => setShowCertificate(true)}
+                          className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-500 hover:to-brand-gold text-white rounded-2xl font-black text-xl shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+                        >
+                          <Trophy size={24} /> Nộp bài và chấm bài
+                        </button>
+                      </div>
 
                       {/* Certificate Modal */}
                       <CertificateModal

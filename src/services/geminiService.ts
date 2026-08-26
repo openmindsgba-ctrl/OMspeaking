@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import type { ExerciseData } from '../types';
 
 const parseSafeJson = (text: string) => {
@@ -377,6 +377,51 @@ export const generateContent = async (
     config: { 
       systemInstruction,
       responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          prompt: { type: Type.STRING },
+          readingText: { type: Type.STRING },
+          readingText2: { type: Type.STRING },
+          reading2Answers: { type: Type.ARRAY, items: { type: Type.STRING } },
+          topicName: { type: Type.STRING },
+          translation: { type: Type.STRING },
+          translation2: { type: Type.STRING },
+          overallGrammar: { type: Type.STRING },
+          comprehensionQuestions: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                question: { type: Type.STRING },
+                suggestedAnswer: { type: Type.STRING }
+              }
+            }
+          },
+          vocabulary: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                word: { type: Type.STRING },
+                ipa: { type: Type.STRING },
+                meaning: { type: Type.STRING },
+                emoji: { type: Type.STRING }
+              }
+            }
+          },
+          homework: {
+            type: Type.OBJECT,
+            properties: {
+              mistakes: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { sentence: { type: Type.STRING }, mistake: { type: Type.STRING }, correction: { type: Type.STRING } } } },
+              completeSentences: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { sentence: { type: Type.STRING }, givenWords: { type: Type.STRING }, answer: { type: Type.STRING } } } },
+              verbConjugation: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { sentence: { type: Type.STRING }, verb: { type: Type.STRING }, answer: { type: Type.STRING } } } },
+              rewriteSentences: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { originalSentence: { type: Type.STRING }, hint: { type: Type.STRING }, answer: { type: Type.STRING } } } }
+            }
+          }
+        },
+        required: ["prompt", "readingText", "readingText2", "reading2Answers", "topicName", "translation", "translation2", "overallGrammar", "comprehensionQuestions", "vocabulary", "homework"]
+      },
       maxOutputTokens: 8192,
     },
   });
@@ -790,7 +835,7 @@ Output JSON:
             },
           },
           {
-            text: `Đây là đoạn văn bản gốc: "${questionText}". \n\nHãy so sánh với file âm thanh vừa cung cấp.`,
+            text: `Đây là đoạn văn bản gốc: "${originalText}". \n\nHãy so sánh với file âm thanh vừa cung cấp.`,
           },
         ],
       },
@@ -894,6 +939,27 @@ Output strictly a JSON object matching this schema:
     config: { 
       systemInstruction,
       responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          questions: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                id: { type: Type.STRING },
+                type: { type: Type.STRING },
+                questionText: { type: Type.STRING },
+                suggestedWords: { type: Type.STRING },
+                expectedAnswer: { type: Type.STRING },
+                explanation: { type: Type.STRING }
+              },
+              required: ["id", "type", "questionText", "expectedAnswer", "explanation"]
+            }
+          }
+        },
+        required: ["questions"]
+      },
       temperature: 0.2, // keep it deterministic
       maxOutputTokens: 8192
     },
