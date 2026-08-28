@@ -19,9 +19,8 @@ import { SpeechEvaluator } from './components/SpeechEvaluator';
 import { CertificateModal } from './components/CertificateModal';
 import { Footer } from './components/Footer';
 import { LessonHistory } from './components/LessonHistory';
-
+import { ExerciseSection } from './components/ExerciseSection';
 import { ContentProtection } from './components/ContentProtection';
-import { WrittenExercises } from './components/WrittenExercises';
 
 // Hooks
 import { useFileProcessor } from './hooks/useFileProcessor';
@@ -71,19 +70,8 @@ export default function App() {
 
   // Custom hooks
   const fileProcessor = useFileProcessor(setTopic, setImagePreview, setContentMode, setError, contentMode);
-  const fullReadingText2 = React.useMemo(() => {
-    if (!readingText2) return null;
-    let full = readingText2;
-    if (reading2Answers) {
-      reading2Answers.forEach((ans, idx) => {
-        full = full.replace(`(${idx + 1})`, ans);
-      });
-    }
-    return full;
-  }, [readingText2, reading2Answers]);
-
   const audioPlayer = useAudioPlayer(readingText, level, setError);
-  const audioPlayer2 = useAudioPlayer(fullReadingText2, level, setError);
+  const audioPlayer2 = useAudioPlayer(readingText2, level, setError);
   const recorder = useRecorder(readingText, level, setError);
   const lessonHistory = useLessonHistory();
 
@@ -164,14 +152,7 @@ export default function App() {
         return null;
       }) : null;
       
-      let fullText2 = result.readingText2;
-      if (fullText2 && result.reading2Answers) {
-        result.reading2Answers.forEach((ans, idx) => {
-          fullText2 = fullText2!.replace(`(${idx + 1})`, ans);
-        });
-      }
-      
-      const audioUrl2Result = fullText2 ? await generateAudio(fullText2, level).catch(err => {
+      const audioUrl2Result = result.readingText2 ? await generateAudio(result.readingText2, level).catch(err => {
         console.error("Background audio generation 2 failed", err);
         return null;
       }) : null;
@@ -489,7 +470,14 @@ export default function App() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-
+                  {readingText && (
+                    <button onClick={() => setShowTranslation(!showTranslation)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm
+                        ${showTranslation ? 'bg-brand-blue text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      <Languages size={14} /> {showTranslation ? 'Hide translation' : 'Show translation'}
+                    </button>
+                  )}
                   {readingText && (
                     <button onClick={downloadPoster} disabled={isDownloading}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all shadow-lg
@@ -555,29 +543,55 @@ export default function App() {
                             isAudioLoading={audioPlayer2.isAudioLoading}
                             setIsPlaying={audioPlayer2.setIsPlaying}
                             handlePlayAudio={audioPlayer2.handlePlayAudio}
+                            onToggleTranslation={() => setShowTranslation(!showTranslation)}
                           />
                         </div>
                       )}
 
-                      {/* Written Exercises */}
-                      {exerciseData && (
-                        <div className="w-full max-w-4xl mx-auto">
-                          <WrittenExercises
-                            data={exerciseData}
-                            onComplete={handleExerciseComplete}
+                      {/* Exercise Section */}
+                      {!exerciseData ? (
+                        <div className="w-full max-w-[800px] p-6 bg-amber-50/75 rounded-2xl border-2 border-dashed border-amber-200 flex flex-col items-center justify-center text-center space-y-3 mt-8">
+                          <span className="text-2xl">📝</span>
+                          <div>
+                            <h4 className="font-bold text-amber-900 text-sm sm:text-base">Lesson has no exercises yet</h4>
+                            <p className="text-xs text-amber-700/80 mt-1 max-w-md">Due to network connection or system overload from Google. Please click the button below to generate exercises now!</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (!readingText) return;
+                              setIsGenerating(true);
+                              setError(null);
+                              try {
+                                const exData = await generateExercise(readingText, level);
+                                setExerciseData(exData);
+                                // Save to lesson history
+                                if (currentLessonId) {
+                                  lessonHistory.updateExerciseData(currentLessonId, exData);
+                                }
+                              } catch (err: any) {
+                                console.error(err);
+                                setError("Cannot generate exercises at this time. Please check your API key and try again later.");
+                              } finally {
+                                setIsGenerating(false);
+                              }
+                            }}
+                            disabled={isGenerating}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 active:scale-95 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all"
+                          >
+                            <RefreshCw className={isGenerating ? "animate-spin" : ""} size={14} />
+                            Generate Exercises
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="mt-8">
+                          <ExerciseSection 
+                            exerciseData={exerciseData} 
+                            savedScore={exerciseScore} 
+                            onComplete={handleExerciseComplete} 
                           />
                         </div>
                       )}
-
-                      {/* Submit Button */}
-                      <div className="w-full max-w-4xl mx-auto mt-8 flex justify-center pb-12">
-                        <button
-                          onClick={() => setShowCertificate(true)}
-                          className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-500 hover:to-brand-gold text-white rounded-2xl font-black text-xl shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-                        >
-                          <Trophy size={24} /> Nộp bài và chấm bài
-                        </button>
-                      </div>
 
                       {/* Certificate Modal */}
                       <CertificateModal

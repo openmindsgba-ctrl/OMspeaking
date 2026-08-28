@@ -20,35 +20,45 @@ export interface ExerciseData {
   questions: WrittenQuestion[]; // 30 questions
 }
 
-export interface MistakeExercise {
-  sentence: string;
-  mistake: string;
-  correction: string;
+export interface MatchingExercise {
+  items: { term: string; definition: string }[];
 }
 
-export interface CompleteSentenceExercise {
-  sentence: string; // contains '___'
-  givenWords: string; // words provided to fill in or use
+export interface FillBlankExercise {
+  sentence: string; // e.g., "The cat ___ on the mat."
+  options?: string[]; // Multiple choice options
   answer: string;
 }
 
-export interface VerbConjugationExercise {
-  sentence: string; // contains '___'
-  verb: string; // the base verb
-  answer: string;
-}
-
-export interface RewriteSentenceExercise {
+export interface RewriteExercise {
   originalSentence: string;
-  hint: string; // The starting words of the new sentence
-  answer: string; // The complete rewritten sentence
+  hint: string; // e.g., "Begin with 'If...'"
+  answer: string;
+}
+
+export interface MistakeExercise {
+  sentence: string; // "She don't like apples."
+  mistake: string; // "don't"
+  correction: string; // "doesn't"
+}
+
+export interface QuestionExercise {
+  question: string;
+  suggestedAnswer: string;
+}
+
+export interface EssayExercise {
+  topic: string;
+  guidance: string; // Bullet points or hints
 }
 
 export interface HomeworkData {
+  matching: MatchingExercise;
+  fillBlanks: FillBlankExercise[];
+  rewrites: RewriteExercise[];
   mistakes: MistakeExercise[];
-  completeSentences: CompleteSentenceExercise[];
-  verbConjugation: VerbConjugationExercise[];
-  rewriteSentences: RewriteSentenceExercise[];
+  questions: QuestionExercise[];
+  essay: EssayExercise;
 }
 
 export interface AppState {

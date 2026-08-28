@@ -304,9 +304,7 @@ const ReadingPractice: React.FC<{ originalText: string | null }> = ({ originalTe
       </div>
 
       <button
-        type="button"
-        onClick={(e) => { e.preventDefault(); isRecording ? stopRecording() : startRecording(); }}
-        onTouchEnd={(e) => { e.preventDefault(); isRecording ? stopRecording() : startRecording(); }}
+        onClick={isRecording ? stopRecording : startRecording}
         className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
           isRecording 
             ? 'bg-rose-500 text-white animate-pulse shadow-rose-300 scale-110' 
@@ -1083,34 +1081,34 @@ export const PosterPreview: React.FC<PosterPreviewProps> = ({
             >
               {readingText ? renderMarkdown(readingText) : null}
             </div>
-            {readingText && <ReadingPractice originalText={readingText} />}
+            
             {translationText && (
-              <div className="mt-6 flex flex-col items-center" data-html2canvas-ignore>
+              <div data-html2canvas-ignore className="mt-6 flex justify-center">
                 <button
                   onClick={onToggleTranslation}
-                  className="px-6 py-2.5 bg-blue-100 text-blue-700 font-bold rounded-full hover:bg-blue-200 transition-colors flex items-center gap-2 text-sm shadow-sm"
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm
+                    ${showTranslation ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white border-2 border-indigo-100 text-indigo-600 hover:bg-indigo-50'}`}
                 >
-                  <Languages size={18} />
-                  {showTranslation ? 'Ẩn bản dịch' : 'Dịch'}
+                  <Languages size={18} /> {showTranslation ? 'Ẩn bản dịch' : 'Dịch bài đọc'}
                 </button>
               </div>
             )}
+            {showTranslation && translationText && (
+              <div className="space-y-2 pt-3 mt-4" style={{ borderTop: '2px solid #fef3c7' }}>
+                <div className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#d97706' }}>Vietnamese Translation</div>
+                <div className="text-sm sm:text-lg leading-relaxed whitespace-pre-wrap font-bold italic" style={{ color: '#334155' }}>
+                  {translationText}
+                </div>
+              </div>
+            )}
             
+            {readingText && <ReadingPractice originalText={readingText} />}
             {comprehensionQuestions && comprehensionQuestions.length > 0 && (
               <div data-html2canvas-ignore className="mt-8">
                 <ReadingComprehension questions={comprehensionQuestions} apiKey={apiKey || ""} />
               </div>
             )}
           </div>
-
-          {showTranslation && translationText && (
-            <div className="space-y-2 pt-3 mt-4" style={{ borderTop: '2px solid #fef3c7' }}>
-              <div className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#d97706' }}>Vietnamese Translation</div>
-              <div className="text-sm sm:text-lg leading-relaxed whitespace-pre-wrap font-bold italic" style={{ color: '#334155' }}>
-                {translationText}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

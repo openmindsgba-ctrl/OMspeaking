@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Volume2, CheckCircle, XCircle, Award, Play, Pause } from 'lucide-react';
+import { Volume2, CheckCircle, XCircle, Award, Play, Pause, Languages } from 'lucide-react';
 import { EnglishLevel, VocabularyItem } from '../types';
 import { HomeworkSection } from './HomeworkSection';
 
@@ -20,6 +20,7 @@ interface ReadingTwoProps {
   setIsPlaying: (playing: boolean) => void;
   handlePlayAudio: () => Promise<void>;
   homeworkData?: any;
+  onToggleTranslation: () => void;
 }
 
 export const ReadingTwo: React.FC<ReadingTwoProps> = ({
@@ -37,13 +38,10 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
   setIsPlaying,
   handlePlayAudio,
   homeworkData,
+  onToggleTranslation,
 }) => {
   const [userInputs, setUserInputs] = useState<Record<number, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const shuffledVocabulary = React.useMemo(() => {
-    return [...vocabulary].sort(() => Math.random() - 0.5);
-  }, [vocabulary]);
 
   // Audio player state
   const [currentTime, setCurrentTime] = useState(0);
@@ -163,7 +161,7 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
       <div className="bg-blue-50 border-2 border-blue-100 rounded-xl p-4">
         <h4 className="text-sm font-bold text-blue-900 mb-2 uppercase tracking-wide">Word Bank</h4>
         <div className="flex flex-wrap gap-2">
-          {shuffledVocabulary.map((v, idx) => (
+          {vocabulary.map((v, idx) => (
             <span key={idx} className="bg-white border border-blue-200 text-blue-700 px-3 py-1 rounded-lg text-sm font-bold shadow-sm">
               {v.word}
             </span>
@@ -289,10 +287,29 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
               </span>
             );
           }
-          // Normal text part
           return <span key={i}>{part}</span>;
         })}
       </div>
+
+      {translationText && (
+        <div data-html2canvas-ignore className="mt-6 flex justify-center">
+          <button
+            onClick={onToggleTranslation}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm
+              ${showTranslation ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white border-2 border-indigo-100 text-indigo-600 hover:bg-indigo-50'}`}
+          >
+            <Languages size={18} /> {showTranslation ? 'Ẩn bản dịch' : 'Dịch bài đọc'}
+          </button>
+        </div>
+      )}
+
+      {showTranslation && translationText && (
+        <div className="mt-4 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
+          <p className="text-slate-600 italic text-sm sm:text-base leading-relaxed">
+            {translationText}
+          </p>
+        </div>
+      )}
 
       {!isSubmitted ? (
         <button
@@ -328,12 +345,41 @@ export const ReadingTwo: React.FC<ReadingTwoProps> = ({
             </div>
           </div>
 
-          <button 
-            onClick={() => { setIsSubmitted(false); setUserInputs({}); }}
-            className="w-full mt-4 px-4 py-4 bg-slate-100 hover:bg-slate-200 border-2 border-slate-200 text-slate-700 font-black rounded-xl transition-colors shadow-sm active:scale-95 uppercase tracking-wider"
-          >
-            Start Over
-          </button>
+            <div className="p-4 bg-slate-100 rounded-xl space-y-3 text-sm border border-slate-200">
+              <h4 className="font-black text-slate-700 flex items-center gap-2">
+                <CheckCircle size={18} className="text-green-600" />
+                Suggested Answers, Pronunciation & Translation
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {answers?.map((ans, idx) => {
+                  const vocabMatch = vocabulary.find(v => v.word.toLowerCase() === ans.toLowerCase());
+                  return (
+                    <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200">
+                      <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-black shrink-0">
+                        {idx + 1}
+                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-black text-slate-800">{ans}</span>
+                          {vocabMatch?.ipa && (
+                            <span className="text-xs text-indigo-600 font-semibold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">{vocabMatch.ipa}</span>
+                          )}
+                        </div>
+                        {vocabMatch?.meaning && (
+                          <span className="text-xs text-slate-500 italic truncate">{vocabMatch.meaning}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            <button 
+              onClick={() => { setIsSubmitted(false); setUserInputs({}); }}
+              className="mt-4 px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold rounded-lg transition-colors text-xs shadow-sm active:scale-95"
+            >
+              Try Again
+            </button>
+          </div>
           
           {homeworkData && <HomeworkSection data={homeworkData} />}
         </div>

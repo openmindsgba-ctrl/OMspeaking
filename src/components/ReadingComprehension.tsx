@@ -16,7 +16,6 @@ interface ReadingComprehensionProps {
 
 interface EvaluationResult {
   isCorrect: boolean;
-  score: number;
   feedback: string;
   studentAnswer: string;
 }
@@ -25,7 +24,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
   const [evaluations, setEvaluations] = useState<Record<number, EvaluationResult>>({});
   const [loadingMap, setLoadingMap] = useState<Record<number, boolean>>({});
   const [activeMic, setActiveMic] = useState<number | null>(null);
-  const [textAnswers, setTextAnswers] = useState<Record<number, string>>({});
+  const [transcript, setTranscript] = useState<string>("");
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -38,7 +37,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
 
   const startSpeechRecognition = (qIdx: number) => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói (hoặc bạn đang mở trong Zalo/Facebook). Vui lòng nhấn vào biểu tượng 3 chấm ở góc trên và chọn 'Mở bằng trình duyệt' (Chrome/Safari) để sử dụng tính năng này.");
+      alert("Your browser doesn't support speech recognition. Please use Chrome.");
       return;
     }
     
@@ -54,7 +53,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
 
     recognition.onstart = () => {
       setActiveMic(qIdx);
-      setTextAnswers(prev => ({ ...prev, [qIdx]: "" }));
+      setTranscript("");
     };
 
     recognition.onresult = (event: any) => {
@@ -62,39 +61,35 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
       for (let i = 0; i < event.results.length; i++) {
         finalTranscript += event.results[i][0].transcript;
       }
-      setTextAnswers(prev => ({ ...prev, [qIdx]: finalTranscript }));
+      setTranscript(finalTranscript);
     };
 
     recognition.onerror = (event: any) => {
-      console.error("Speech recognition error:", event.error);
-      if (event.error === 'not-allowed') {
-        alert("Không thể truy cập micro. Bạn vui lòng: \n1. Nhấn 'Cho phép' khi trình duyệt yêu cầu.\n2. Kiểm tra cài đặt quyền truy cập micro.\n3. Nhấn nút 'Mở trong tab mới' (góc trên bên phải) nếu đang dùng Zalo/FB.");
-      }
+      console.error(event.error);
       setActiveMic(null);
     };
 
     recognition.onend = () => {
-      setActiveMic(null);
+      // We don't auto evaluate on end, we wait for manual stop to ensure full transcript is captured, 
+      // but if it ends unexpectedly, we could evaluate if transcript is full.
+      // For now, let's keep it manual stop for better UX control.
     };
 
     recognitionRef.current = recognition;
     recognition.start();
   };
 
-  const handleStopMic = () => {
+  const handleStopAndEvaluate = async (qIdx: number) => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
     setActiveMic(null);
-  };
-
-  const handleEvaluate = async (qIdx: number) => {
-    handleStopMic();
     
-    const finalAnswer = (textAnswers[qIdx] || "").trim();
+    const finalAnswer = transcript.trim();
     if (!finalAnswer) return;
 
     setLoadingMap(prev => ({ ...prev, [qIdx]: true }));
+    setTranscript("");
     
     try {
       const q = questions[qIdx];
@@ -104,7 +99,6 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
         ...prev,
         [qIdx]: {
           isCorrect: result.isCorrect,
-          score: result.score,
           feedback: result.feedback,
           studentAnswer: finalAnswer
         }
@@ -119,8 +113,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
 
   const isAllAnswered = Object.keys(evaluations).length === questions.length && questions.length > 0;
   const correctCount = Object.values(evaluations).filter(e => e.isCorrect).length;
-  const totalScoreSum = Object.values(evaluations).reduce((sum, e) => sum + e.score, 0);
-  const score = questions.length > 0 ? Math.round(totalScoreSum / questions.length) : 0;
+  const score = questions.length > 0 ? Math.round((correctCount / questions.length) * 10) : 0;
 
   return (
     <div className="bg-white rounded-[2rem] shadow-xl border-[6px] border-brand-blue-dark overflow-hidden">
@@ -130,7 +123,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
             READING COMPREHENSION
           </h2>
           <p className="text-sm text-slate-500 font-medium">
-            Type your answer or click the Microphone to speak!
+            Click the Microphone button and read your answer out loud in English!
           </p>
         </div>
 
@@ -138,7 +131,6 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
           {questions.map((q, qIdx) => {
             const evaluation = evaluations[qIdx];
             const isLoading = loadingMap[qIdx];
-            const answerText = textAnswers[qIdx] || "";
 
             return (
               <div key={qIdx} className="space-y-4">
@@ -149,45 +141,28 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
                   <div className="flex-1 font-semibold text-slate-800 pt-1 leading-relaxed">
                     {q.question}
                     
-                    <div className="mt-3 relative">
-                      <textarea
-                        value={answerText}
-                        onChange={(e) => setTextAnswers(prev => ({ ...prev, [qIdx]: e.target.value }))}
-                        disabled={isLoading || evaluation !== undefined}
-                        placeholder="Type your answer here..."
-                        className="w-full p-3 pr-12 rounded-xl border-2 border-slate-200 focus:border-brand-blue outline-none transition-colors resize-none text-sm font-medium"
-                        rows={2}
-                      />
-                      <button
-                        type="button"
-                        onClick={(e) => { e.preventDefault(); activeMic === qIdx ? handleStopMic() : startSpeechRecognition(qIdx) }}
-                        onTouchEnd={(e) => { e.preventDefault(); activeMic === qIdx ? handleStopMic() : startSpeechRecognition(qIdx) }}
-                        disabled={isLoading || evaluation !== undefined}
-                        className={`absolute right-2 top-2 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                          activeMic === qIdx
-                            ? 'bg-rose-50 text-rose-500 animate-pulse'
-                            : 'bg-slate-50 text-slate-400 hover:text-brand-blue hover:bg-blue-50'
-                        }`}
-                        title="Answer by voice"
-                      >
-                        {activeMic === qIdx ? <MicOff size={16} /> : <Mic size={16} />}
-                      </button>
-                    </div>
+                    {/* Live transcript feedback for active mic */}
+                    {activeMic === qIdx && transcript && (
+                      <div className="mt-2 text-xs text-blue-600 font-medium italic bg-blue-50 p-2 rounded-lg border border-blue-100 shadow-inner">
+                        You are saying: "{transcript}"
+                      </div>
+                    )}
                   </div>
                   
-                  {!evaluation && (
-                    <button
-                      onClick={() => handleEvaluate(qIdx)}
-                      disabled={isLoading || !answerText.trim()}
-                      className={`h-10 px-4 rounded-xl flex items-center justify-center font-bold transition-all shrink-0 mt-8 ${
-                        isLoading || !answerText.trim()
-                          ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                          : 'bg-brand-blue text-white shadow-md hover:bg-blue-700 hover:shadow-lg active:scale-95'
-                      }`}
-                    >
-                      {isLoading ? <Loader2 size={16} className="animate-spin" /> : 'Submit'}
-                    </button>
-                  )}
+                  {/* Voice Answer Button */}
+                  <button
+                    onClick={() => activeMic === qIdx ? handleStopAndEvaluate(qIdx) : startSpeechRecognition(qIdx)}
+                    disabled={isLoading}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shrink-0 shadow-sm border-2 ${
+                      isLoading ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' :
+                      activeMic === qIdx
+                        ? 'bg-rose-50 border-rose-200 text-rose-500 animate-pulse'
+                        : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-brand-blue hover:border-brand-blue hover:bg-blue-50'
+                    }`}
+                    title="Answer by voice"
+                  >
+                    {isLoading ? <Loader2 size={18} className="animate-spin" /> : activeMic === qIdx ? <MicOff size={18} /> : <Mic size={18} />}
+                  </button>
                 </div>
 
                 {/* Evaluation Result */}
@@ -201,13 +176,8 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
                       ) : (
                         <AlertCircle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
                       )}
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-0.5">
-                          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Em đã trả lời:</div>
-                          <div className={`text-[10px] font-black px-2 py-0.5 rounded-full ${evaluation.isCorrect ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
-                            Điểm: {evaluation.score}/10
-                          </div>
-                        </div>
+                      <div>
+                        <div className="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Em đã trả lời:</div>
                         <div className={`font-medium ${evaluation.isCorrect ? 'text-green-800' : 'text-orange-800'} italic`}>
                           "{evaluation.studentAnswer}"
                         </div>
@@ -276,7 +246,7 @@ export const ReadingComprehension: React.FC<ReadingComprehensionProps> = ({ ques
             
             <div className="mt-8">
               <button
-                onClick={() => { setEvaluations({}); setTextAnswers({}); }}
+                onClick={() => setEvaluations({})}
                 className="w-full bg-slate-100 text-slate-700 font-black uppercase tracking-wider py-4 rounded-xl hover:bg-slate-200 transition-colors shadow-sm hover:shadow-md hover:-translate-y-0.5 border-2 border-slate-200"
               >
                 Start Over
